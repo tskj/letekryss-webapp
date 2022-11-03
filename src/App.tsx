@@ -1,21 +1,30 @@
+import { useEffect, useState } from "react";
 import "./App.css";
 
 export const App = () => {
+  const [antallTrykk, setAntallTrykk] = useState(-10);
+
   return (
     <div className="App">
       <header className="App-header">
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <p>Hei hei hei</p>
+        <div>{antallTrykk}</div>
+        <button onClick={() => setAntallTrykk(antallTrykk + 1)}>
+          Klikk her +
+        </button>
+        <MinKomponent navn={antallTrykk < 10 ? "maren" : "tarjei"} />
       </header>
     </div>
   );
+};
+
+type Props = {
+  navn: string;
+};
+const MinKomponent = ({ navn }: Props) => {
+  useEffect(() => {
+    document.title = navn;
+  });
+
+  return <div>hei på deg, {navn}...</div>;
 };

@@ -12,7 +12,7 @@ export const App = () => {
         <button onClick={() => setAntallTrykk(antallTrykk + 1)}>
           Klikk her +
         </button>
-        <MinKomponent navn={antallTrykk < 10 ? "maren" : "tarjei"} />
+        <MinKomponent navn={antallTrykk < 100 ? "maren" : "tarjei"} />
       </header>
     </div>
   );

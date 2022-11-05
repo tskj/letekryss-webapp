@@ -8,6 +8,7 @@ export const App = () => {
     <div className="App">
       <header className="App-header">
         <p>Hei hei hei</p>
+        <div className="grid">{y}</div>
         <div>{antallTrykk}</div>
         <button onClick={() => setAntallTrykk(antallTrykk + 1)}>
           Klikk her +
@@ -46,3 +47,5 @@ const brett = [
   ['L', 'W', 'B', 'I', 'Å', 'W', 'Æ', 'R', 'Ø', 'C', 'N', 'M', 'U', 'S', 'Ø'],
   ['L', 'J', 'X', 'Ø', 'Æ', 'Ø', 'Y', 'Æ', 'B', 'G', 'G', 'H', 'U', 'Æ', 'Ø']
 ]
+
+const y = brett.map(row => row.map(bokstav => <div>{bokstav}</div>))

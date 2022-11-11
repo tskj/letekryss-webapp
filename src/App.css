@@ -39,8 +39,8 @@
 
 .grid {
   display : grid;
-  grid-template-columns : repeat(15, 50px);
-  grid-template-rows : repeat(15, 50px);
+  grid-template-columns : repeat(var(--board-size), 50px);
+  grid-template-rows : repeat(var(--board-size), 50px);
 
 
 }

@@ -30,6 +30,9 @@ const MinKomponent = ({ navn }: Props) => {
   return <div>Lykke til, {navn}</div>;
 };
 
+var r = document.querySelector(':root') as any
+r.style.setProperty('--board-size', 15);
+
 const brett = [
   ['Ø', 'K', 'Ø', 'X', 'I', 'T', 'V', 'A', 'H', 'E', 'P', 'E', 'B', 'N', 'Y'],
   ['K', 'A', 'C', 'O', 'U', 'H', 'S', 'V', 'G', 'W', 'B', 'E', 'C', 'D', 'Ø'],

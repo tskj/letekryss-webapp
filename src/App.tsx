@@ -7,7 +7,7 @@ export const App = () => {
   return (
     <div className="App">
       <header className="App-header">
-        <p>Hei hei hei</p>
+        <p>Velkommen til Letekryss!</p>
         <div className="grid">{y}</div>
         <div>{antallTrykk}</div>
         <button onClick={() => setAntallTrykk(antallTrykk + 1)}>
@@ -27,7 +27,7 @@ const MinKomponent = ({ navn }: Props) => {
     document.title = navn;
   });
 
-  return <div>hei på deg, {navn}...</div>;
+  return <div>Lykke til, {navn}</div>;
 };
 
 const brett = [

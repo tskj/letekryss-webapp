@@ -7,42 +7,31 @@ export const App = () => {
   return (
     <div className="App">
       <header className="App-header">
-        <p>Hei hei hei</p>
-        <div>{antallTrykk}</div>
-        <button
-          onClick={() => {
-            setAntallTrykk(antallTrykk + 1);
-          }}
-        >
-          Klikk her +
-        </button>
-        {y}
-        <MinKomponent navn={antallTrykk < 10 ? "maren" : "tarjei"} />
+        <div className="grid">{y}</div>
       </header>
     </div>
   );
 };
 
-/*
-<div>
-  <div>Ø</div><div>K</div>  Ø  X  I  T  V  A  H  E  P  E  B  N  Y
-  <div>[K  A  C  O  U  H  S  V  G  W  B  E  C  D  Ø]</div>
-  F  A  K  W  Z  P  A  K  X  Z  Z  N  H  V  Ø
-  E  C  S  M  I  U  I  V  X  Ø  J  Z  Ø  C  Q
-  I  Z  C  G  M  K  Z  Å  X  G  V  Y  Æ  D  B
-  B  X  D  B  D  T  M  Z  K  I  A  O  X  W  M
-  V  K  X  X  L  Y  G  W  M  D  U  G  S  Ø  T
-  I  J  F  W  Æ  G  S  F  M  V  K  X  U  U  O
-  Y  X  K  Q  L  T  B  F  L  R  Y  X  R  G  Y
-  T  U  H  G  O  Q  T  Å  V  Z  G  J  X  E  A
-  W  R  J  K  H  C  W  J  J  T  T  X  G  J  V
-  G  M  K  Y  S  F  Z  G  N  O  Ø  C  Z  N  Q
-  S  Q  M  S  R  A  X  H  O  D  T  O  Æ  E  A
-  L  W  B  I  Å  W  Æ  R  Ø  C  N  M  U  S  Ø
-  L  J  X  Ø  Æ  Ø  Y  Æ  B  G  G  H  U  Æ  Ø
-</div>
-*/
+var r = document.querySelector(":root") as any;
+r.style.setProperty("--board-size", 15);
 
-const board = [1, 2, 3];
+const brett = [
+  ["V", "P", "H", "N", "N", "A", "G", "N", "I", "R", "G", "N", "I", "F", "Ø"],
+  ["N", "A", "I", "S", "R", "P", "H", "O", "R", "N", "S", "U", "N", "D", "S"],
+  ["J", "D", "R", "G", "J", "K", "R", "I", "J", "R", "E", "D", "N", "N", "Y"],
+  ["S", "N", "Z", "G", "N", "Å", "E", "D", "X", "Å", "F", "U", "N", "E", "G"],
+  ["Ø", "L", "N", "Æ", "E", "I", "N", "T", "P", "H", "E", "E", "E", "C", "K"],
+  ["Ø", "M", "T", "J", "F", "N", "R", "K", "I", "J", "I", "L", "Æ", "A", "P"],
+  ["O", "N", "D", "R", "L", "E", "R", "E", "J", "O", "J", "K", "P", "K", "D"],
+  ["N", "D", "N", "F", "E", "R", "K", "U", "P", "R", "L", "A", "Ø", "N", "Æ"],
+  ["L", "K", "K", "E", "Y", "J", "B", "R", "W", "E", "B", "J", "S", "O", "H"],
+  ["E", "K", "K", "S", "M", "W", "S", "N", "K", "L", "L", "N", "V", "T", "I"],
+  ["Æ", "Å", "J", "F", "K", "E", "P", "N", "E", "D", "U", "S", "R", "T", "G"],
+  ["Ø", "E", "R", "L", "D", "P", "D", "S", "A", "B", "P", "T", "M", "E", "Å"],
+  ["S", "J", "A", "S", "S", "E", "T", "N", "M", "R", "P", "K", "N", "N", "G"],
+  ["G", "E", "F", "G", "E", "E", "Å", "D", "U", "V", "T", "V", "R", "Y", "M"],
+  ["A", "M", "M", "J", "O", "E", "Y", "O", "G", "H", "I", "F", "G", "J", "I"],
+];
 
-const y = board.map(row => row.map(letter => )); // [<div>1</div>, <div>4</div>, <div>6</div>]
+const y = brett.map((row) => row.map((bokstav) => <div>{bokstav}</div>));

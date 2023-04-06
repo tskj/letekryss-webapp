@@ -61,14 +61,6 @@ export const App = () => {
 
             return (
               <Fragment key={k}>
-                <div
-                  style={{
-                    top: start.top,
-                    left: start.left,
-                    transform: `rotate(${rad}rad)`,
-                  }}
-                  className="selection-half selection-start"
-                />
                 <svg width="0" height="0">
                   <defs>
                     <clipPath id={"capsule" + k}>
@@ -84,23 +76,22 @@ export const App = () => {
                   </defs>
                 </svg>
                 <div
+                  className="selection-firkant"
                   style={{
                     top: start.top + radius,
                     left: start.left,
                     height: length + 2 * radius,
                     transform: `rotate(${rad}rad) translateY(${-radius}px)`,
-                    clipPath: `url(#${"capsule" + k})`,
                   }}
-                  className="selection-firkant capsule"
-                />
-                <div
-                  style={{
-                    top: end.top,
-                    left: end.left,
-                    transform: `rotate(${rad}rad)`,
-                  }}
-                  className="selection-half selection-end"
-                />
+                >
+                  <div
+                    // må deles opp for å unngå rendering artifacts i firefox
+                    className="selection-capsule"
+                    style={{
+                      clipPath: `url(#${"capsule" + k})`,
+                    }}
+                  />
+                </div>
               </Fragment>
             );
           })}

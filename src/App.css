@@ -67,30 +67,19 @@
   color: red;
 }
 
-.selection-half {
-  position: fixed;
-  background-color: white;
-  opacity: 0.0;
-  border-radius: 50%;
-  content: "";
-  width: 50px;
-  height: 50px;
-}
-
-.selection-start {
-  clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
-}
-
-.selection-end {
-  clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%);
-}
-
 .selection-firkant {
   position: fixed;
-  background-color: white;
   opacity: 0.3;
   content: "";
   width: 50px;
+  pointer-events: none;
 
   transform-origin: 50% 0;
+}
+
+.selection-capsule {
+  background-color: white;
+  content: "";
+  width: 100%;
+  height: 100%;
 }

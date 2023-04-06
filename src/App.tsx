@@ -51,13 +51,16 @@ export const App = () => {
 
             const dy = end.top - start.top;
             const dx = end.left - start.left;
+            const radius = (start.bottom - start.top) / 2;
 
             const length = Math.sqrt(dx ** 2 + dy ** 2);
 
             const rad = Math.atan2(dy, dx) - Math.PI / 2;
 
+            const k = c_key(selectionStart) + c_key(selectionEnd);
+
             return (
-              <Fragment key={c_key(selectionStart) + c_key(selectionEnd)}>
+              <Fragment key={k}>
                 <div
                   style={{
                     top: start.top,
@@ -66,14 +69,29 @@ export const App = () => {
                   }}
                   className="selection-half selection-start"
                 />
+                <svg width="0" height="0">
+                  <defs>
+                    <clipPath id={"capsule" + k}>
+                      <circle cx={radius} cy={radius} r={radius} />
+                      <rect
+                        x="0"
+                        y={radius}
+                        width={2 * radius}
+                        height={length}
+                      />
+                      <circle cx={radius} cy={length + radius} r={radius} />
+                    </clipPath>
+                  </defs>
+                </svg>
                 <div
                   style={{
-                    top: start.top + (start.bottom - start.top) / 2,
+                    top: start.top + radius,
                     left: start.left,
-                    height: length,
-                    transform: `rotate(${rad}rad)`,
+                    height: length + 2 * radius,
+                    transform: `rotate(${rad}rad) translateY(${-radius}px)`,
+                    clipPath: `url(#${"capsule" + k})`,
                   }}
-                  className="selection-firkant"
+                  className="selection-firkant capsule"
                 />
                 <div
                   style={{

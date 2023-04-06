@@ -1,4 +1,4 @@
-import { Fragment, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import "./App.css";
 
 var r = document.querySelector(":root") as any;
@@ -37,27 +37,54 @@ export const App = () => {
 
   const refs = useRef<Record<string, HTMLDivElement>>({});
 
+  type MousePos = { clientX: number; clientY: number };
+  const mouseCoord = useRef<MousePos>(null);
+  const update = useRef<(m: MousePos) => void>(() => {});
+  (update.current as any) = () => {};
+  useEffect(() => {
+    document.addEventListener("mousemove", (e) => {
+      (mouseCoord.current as any) = { clientX: e.clientX, clientY: e.clientY };
+      update.current({ clientX: e.clientX, clientY: e.clientY });
+    });
+  }, []);
+
   return (
     <div className="App">
       <header className="App-header">
         <div className="selections">
-          {selections.map(([selectionStart, selectionEnd]) => {
+          {[
+            ...selections,
+            ...(isSelecting ? [[start, { i: -1, j: -1 }]] : []),
+          ].map(([selectionStart, selectionEnd]) => {
             const start =
               refs.current?.[c_key(selectionStart)]?.getBoundingClientRect();
-            const end =
-              refs.current?.[c_key(selectionEnd)]?.getBoundingClientRect();
+            const end = refs.current?.[
+              c_key(selectionEnd)
+            ]?.getBoundingClientRect() ?? {
+              top: mouseCoord.current?.clientY,
+              left: mouseCoord.current?.clientX,
+            };
 
             if (!start || !end) return;
 
             const dy = end.top - start.top;
             const dx = end.left - start.left;
-            const radius = (start.bottom - start.top) / 2;
 
-            const length = Math.sqrt(dx ** 2 + dy ** 2);
+            const calc = (dx: number, dy: number) => {
+              const radius = (start.bottom - start.top) / 2;
 
-            const rad = Math.atan2(dy, dx) - Math.PI / 2;
+              const length = Math.sqrt(dx ** 2 + dy ** 2);
+              const orientation = Math.atan2(dy, dx) - Math.PI / 2;
+
+              const transform = `rotate(${orientation}rad) translateY(${-radius}px)`;
+              return { radius, length, transform };
+            };
+
+            const { radius, length, transform } = calc(dx, dy);
 
             const k = c_key(selectionStart) + c_key(selectionEnd);
+            const is_active_drag =
+              selectionEnd.i === -1 && selectionEnd.j === -1;
 
             return (
               <Fragment key={k}>
@@ -66,12 +93,46 @@ export const App = () => {
                     <clipPath id={"capsule" + k}>
                       <circle cx={radius} cy={radius} r={radius} />
                       <rect
+                        ref={(x) => {
+                          if (!x) return;
+                          if (!is_active_drag) return;
+
+                          const f = update.current;
+                          const new_f = (m: MousePos) => {
+                            f(m);
+                            const { length, transform } = calc(
+                              m.clientX - start.left - radius,
+                              m.clientY - start.top - radius
+                            );
+                            x.setAttribute("height", `${length}px`);
+                          };
+                          update.current = new_f;
+                        }}
                         x="0"
                         y={radius}
                         width={2 * radius}
                         height={length}
                       />
-                      <circle cx={radius} cy={length + radius} r={radius} />
+                      <circle
+                        ref={(x) => {
+                          if (!x) return;
+                          if (!is_active_drag) return;
+
+                          const f = update.current;
+                          const new_f = (m: MousePos) => {
+                            f(m);
+                            const { length, radius: r } = calc(
+                              m.clientX - start.left - radius,
+                              m.clientY - start.top - radius
+                            );
+                            x.setAttribute("cy", `${length + r}`);
+                          };
+                          update.current = new_f;
+                        }}
+                        cx={radius}
+                        cy={length + radius}
+                        r={radius}
+                      />
                     </clipPath>
                   </defs>
                 </svg>
@@ -81,7 +142,27 @@ export const App = () => {
                     top: start.top + radius,
                     left: start.left,
                     height: length + 2 * radius,
-                    transform: `rotate(${rad}rad) translateY(${-radius}px)`,
+                    transform,
+                  }}
+                  ref={(x) => {
+                    if (!x) return;
+                    if (!is_active_drag) return;
+
+                    const f = update.current;
+                    const new_f = (m: MousePos) => {
+                      f(m);
+                      const {
+                        length,
+                        radius: r,
+                        transform,
+                      } = calc(
+                        m.clientX - start.left - radius,
+                        m.clientY - start.top - radius
+                      );
+                      x.style.height = `${length + 2 * r}px`;
+                      x.style.transform = transform;
+                    };
+                    update.current = new_f;
                   }}
                 >
                   <div

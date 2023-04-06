@@ -58,11 +58,12 @@ export const App = () => {
           ].map(([selectionStart, selectionEnd]) => {
             const start =
               refs.current?.[c_key(selectionStart)]?.getBoundingClientRect();
+            const radius = (start.bottom - start.top) / 2;
             const end = refs.current?.[
               c_key(selectionEnd)
             ]?.getBoundingClientRect() ?? {
-              top: mouseCoord.current?.clientY,
-              left: mouseCoord.current?.clientX,
+              top: (mouseCoord.current?.clientY ?? 0) - radius,
+              left: (mouseCoord.current?.clientX ?? 0) - radius,
             };
 
             if (!start || !end) return;
@@ -71,16 +72,14 @@ export const App = () => {
             const dx = end.left - start.left;
 
             const calc = (dx: number, dy: number) => {
-              const radius = (start.bottom - start.top) / 2;
-
               const length = Math.sqrt(dx ** 2 + dy ** 2);
               const orientation = Math.atan2(dy, dx) - Math.PI / 2;
 
               const transform = `rotate(${orientation}rad) translateY(${-radius}px)`;
-              return { radius, length, transform };
+              return { length, transform };
             };
 
-            const { radius, length, transform } = calc(dx, dy);
+            const { length, transform } = calc(dx, dy);
 
             const k = c_key(selectionStart) + c_key(selectionEnd);
             const is_active_drag =
@@ -100,7 +99,7 @@ export const App = () => {
                           const f = update.current;
                           const new_f = (m: MousePos) => {
                             f(m);
-                            const { length, transform } = calc(
+                            const { length } = calc(
                               m.clientX - start.left - radius,
                               m.clientY - start.top - radius
                             );
@@ -121,11 +120,11 @@ export const App = () => {
                           const f = update.current;
                           const new_f = (m: MousePos) => {
                             f(m);
-                            const { length, radius: r } = calc(
+                            const { length } = calc(
                               m.clientX - start.left - radius,
                               m.clientY - start.top - radius
                             );
-                            x.setAttribute("cy", `${length + r}`);
+                            x.setAttribute("cy", `${length + radius}`);
                           };
                           update.current = new_f;
                         }}
@@ -151,15 +150,11 @@ export const App = () => {
                     const f = update.current;
                     const new_f = (m: MousePos) => {
                       f(m);
-                      const {
-                        length,
-                        radius: r,
-                        transform,
-                      } = calc(
+                      const { length, transform } = calc(
                         m.clientX - start.left - radius,
                         m.clientY - start.top - radius
                       );
-                      x.style.height = `${length + 2 * r}px`;
+                      x.style.height = `${length + 2 * radius}px`;
                       x.style.transform = transform;
                     };
                     update.current = new_f;
@@ -194,11 +189,14 @@ export const App = () => {
                     ? " selected"
                     : "")
                 }
-                onClick={() => {
+                onMouseDown={() => {
                   if (!isSelecting) {
                     setIsSelecting(true);
                     setStart({ i, j });
-                  } else {
+                  }
+                }}
+                onMouseUp={() => {
+                  if (i !== start.i || j !== start.j) {
                     setIsSelecting(false);
                     setSelections([...selections, [start, { i, j }]]);
                   }

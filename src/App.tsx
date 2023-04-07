@@ -1,5 +1,4 @@
-import { isEditable, wait } from "@testing-library/user-event/dist/utils";
-import { Fragment, startTransition, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import "./App.css";
 
 var r = document.querySelector(":root") as any;
@@ -30,6 +29,29 @@ const all_coordinates = ([start, end]: [Coordinate, Coordinate]) => {
   }
   return coordinates;
 };
+
+const collect_letters =
+  (board: string[][]) => (s: [Coordinate, Coordinate]) => {
+    const all = all_coordinates(s);
+    const letters = [];
+    for (const { j, i } of all) {
+      letters.push(board[j][i]);
+    }
+    return letters;
+  };
+
+const fasit = [
+  "FINGRINGA",
+  "SLEPERING",
+  "TRANSJERT",
+  "KAPABLESTE",
+  "KNOTTEN",
+  "URNEGRAV",
+  "JASSET",
+  "RYSJES",
+  "HUNDEMENN",
+  "HORNSUNDS",
+];
 
 const brett = [
   ["V", "P", "H", "N", "N", "A", "G", "N", "I", "R", "G", "N", "I", "F", "Ø"],
@@ -119,6 +141,11 @@ export const App = () => {
       setLoading(false);
     }, Math.random() * 500 + 100);
   }, []);
+
+  const found_words = selections.map(collect_letters(brett));
+  const has_found_all = fasit.every((f) =>
+    found_words.some((w) => w.join("") === f || w.reverse().join("") === f)
+  );
 
   return (
     <div className="App">
@@ -339,6 +366,21 @@ export const App = () => {
               );
             })
           )}
+        </div>
+        <div style={{ position: "relative", left: -750 / 2, height: 0 }}>
+          <div className="fasit">
+            {has_found_all &&
+              fasit.map((f, i) => (
+                <div
+                  style={{
+                    animationDelay: `calc(${i} * 0.1s)`,
+                  }}
+                >
+                  {/* f[0] + f.slice(1).toLowerCase() */}
+                  {f}
+                </div>
+              ))}
+          </div>
         </div>
       </header>
     </div>

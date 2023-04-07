@@ -47,6 +47,8 @@
   font-size: 25px;
 
   z-index: 1;
+  perspective: 800px;
+  transform-style: preserve-3d;
 }
 
 .bokstav {
@@ -78,7 +80,25 @@
 
 .loaded {
   opacity: 1;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.03s ease;
+
+  transform: rotateX(0deg);
+  animation: spin 0.4s linear forwards;
+}
+
+@keyframes spin {
+  from {
+    transform: rotateX(0deg);
+  }
+  49.9% {
+    transform: rotateX(-90deg);
+  }
+  50% {
+    transform: rotateX(90deg)
+  }
+  to {
+    transform: rotateX(0deg);
+  }
 }
 
 .selection-firkant {

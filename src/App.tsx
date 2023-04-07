@@ -1,4 +1,4 @@
-import { wait } from "@testing-library/user-event/dist/utils";
+import { isEditable, wait } from "@testing-library/user-event/dist/utils";
 import { Fragment, startTransition, useEffect, useRef, useState } from "react";
 import "./App.css";
 
@@ -62,9 +62,40 @@ type Coordinate = {
 
 const c_key = ({ i, j }: Coordinate) => `i:${i},j:${j}`;
 
+const c_eq = (a: Coordinate, b: Coordinate) => a.i === b.i && a.j === b.j;
+const s_eq =
+  (a: readonly [Coordinate, Coordinate]) => (b: [Coordinate, Coordinate]) =>
+    (c_eq(a[0], b[0]) && c_eq(a[1], b[1])) ||
+    (c_eq(a[1], b[0]) && c_eq(a[0], b[1]));
+
 export const App = () => {
   const [isSelecting, setIsSelecting] = useState(false);
   const [start, setStart] = useState<Coordinate>({ i: -1, j: -1 });
+
+  useEffect(() => {
+    const listener = (e: any) => {
+      if (isSelecting && e.key === "Escape") {
+        setIsSelecting(false);
+      }
+    };
+    document.addEventListener("keydown", listener);
+    return () => document.removeEventListener("keydown", listener);
+  }, [isSelecting]);
+
+  useEffect(() => {
+    const listener = (e: any) => {
+      console.log(e);
+      if (
+        e.target.contains &&
+        e.target.contains(document.getElementsByClassName("grid")[0]) &&
+        isSelecting
+      ) {
+        setIsSelecting(false);
+      }
+    };
+    document.addEventListener("mouseup", listener);
+    return () => document.removeEventListener("mouseup", listener);
+  }, [isSelecting]);
 
   const [selections, setSelections] = useState<[Coordinate, Coordinate][]>([]);
 
@@ -224,12 +255,7 @@ export const App = () => {
                 all_coordinates(
                   inside_selections[inside_selections.length - 1]
                 ).findIndex((c) => c.i === i && c.j === j);
-              console.log(depth_in_selection);
-              console.log(
-                depth_in_selection !== false
-                  ? `calc(${depth_in_selection} * 0.03s)`
-                  : `calc(${Math.random()} * 0.3s)`
-              );
+              const r = Math.random();
               return (
                 <div
                   ref={(r) => {
@@ -243,7 +269,11 @@ export const App = () => {
                     transitionDelay:
                       depth_in_selection !== false
                         ? `calc(${depth_in_selection} * 0.03s)`
-                        : `calc(${Math.random()} * 0.3s)`,
+                        : `calc(${r} * 0.3s + 0.2s)`,
+                    animationDelay:
+                      depth_in_selection !== false
+                        ? `calc(${depth_in_selection} * 0.03s)`
+                        : `calc(${r} * 0.3s)`,
                   }}
                   className={classnames(
                     {
@@ -257,6 +287,8 @@ export const App = () => {
                     if (!isSelecting) {
                       setIsSelecting(true);
                       setStart({ i, j });
+                    } else if (c_eq(start, { i, j })) {
+                      setIsSelecting(false);
                     }
                   }}
                   onMouseUp={() => {
@@ -266,13 +298,43 @@ export const App = () => {
                       j === start.j ||
                       Math.abs(i - start.i) === Math.abs(j - start.j);
 
-                    if (not_on_start && is_on_diagonal_or_straight) {
+                    if (!is_on_diagonal_or_straight) {
                       setIsSelecting(false);
-                      setSelections([...selections, [start, { i, j }]]);
+                      return;
+                    }
+
+                    if (not_on_start && isSelecting) {
+                      setIsSelecting(false);
+
+                      const new_selection: [Coordinate, Coordinate] = [
+                        start,
+                        { i, j },
+                      ];
+
+                      const selection_exists = selections.some(
+                        s_eq(new_selection)
+                      );
+                      if (selection_exists) {
+                        setSelections([
+                          ...selections.filter((s) => !s_eq(new_selection)(s)),
+                        ]);
+                      } else {
+                        setSelections([...selections, new_selection]);
+                      }
                     }
                   }}
                 >
-                  <div>{bokstav}</div>
+                  <div
+                    ref={(bokstavDiv) => {
+                      if (!loading) {
+                        setTimeout(() => {
+                          if (bokstavDiv) bokstavDiv.innerText = bokstav;
+                        }, r * 300 + 201);
+                      }
+                    }}
+                  >
+                    {waitingLetter}
+                  </div>
                 </div>
               );
             })

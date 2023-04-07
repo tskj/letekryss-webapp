@@ -1,3 +1,4 @@
+import { wait } from "@testing-library/user-event/dist/utils";
 import { Fragment, startTransition, useEffect, useRef, useState } from "react";
 import "./App.css";
 
@@ -48,6 +49,12 @@ const brett = [
   ["A", "M", "M", "J", "O", "E", "Y", "O", "G", "H", "I", "F", "G", "J", "I"],
 ];
 
+const waitingLetter =
+  brett[Math.floor(Math.random() * brett.length)][
+    Math.floor(Math.random() * brett.length)
+  ];
+const waitingBoard = brett.map((row) => row.map(() => waitingLetter));
+
 type Coordinate = {
   i: number;
   j: number;
@@ -72,6 +79,14 @@ export const App = () => {
       (mouseCoord.current as any) = { clientX: e.clientX, clientY: e.clientY };
       update.current({ clientX: e.clientX, clientY: e.clientY });
     });
+  }, []);
+
+  // temporary hack to simulate loading
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    setTimeout(() => {
+      setLoading(false);
+    }, Math.random() * 500 + 100);
   }, []);
 
   return (
@@ -199,7 +214,7 @@ export const App = () => {
           })}
         </div>
         <div className="grid">
-          {brett.map((row, j) =>
+          {(loading ? waitingBoard : brett).map((row, j) =>
             row.map((bokstav, i) => {
               const inside_selections = selections.filter(([a, b]) =>
                 all_coordinates([a, b]).find((c) => c.i === i && c.j === j)
@@ -209,6 +224,12 @@ export const App = () => {
                 all_coordinates(
                   inside_selections[inside_selections.length - 1]
                 ).findIndex((c) => c.i === i && c.j === j);
+              console.log(depth_in_selection);
+              console.log(
+                depth_in_selection !== false
+                  ? `calc(${depth_in_selection} * 0.03s)`
+                  : `calc(${Math.random()} * 0.3s)`
+              );
               return (
                 <div
                   ref={(r) => {
@@ -217,11 +238,18 @@ export const App = () => {
                   key={c_key({ i, j })}
                   style={{
                     // transitionDelay: `calc(${Math.random()} * 0.3s)`,
-                    transitionDelay: `calc(${depth_in_selection} * 0.03s)`,
+                    transitionProperty:
+                      depth_in_selection !== false ? "color" : "opacity",
+                    transitionDelay:
+                      depth_in_selection !== false
+                        ? `calc(${depth_in_selection} * 0.03s)`
+                        : `calc(${Math.random()} * 0.3s)`,
                   }}
                   className={classnames(
                     {
                       selected: inside_selections.length > 0,
+                      loading: loading,
+                      loaded: !loading,
                     },
                     "bokstav"
                   )}

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, startTransition, useEffect, useRef, useState } from "react";
 import "./App.css";
 
 var r = document.querySelector(":root") as any;
@@ -16,6 +16,18 @@ const classnames = (
   }
   cns = cns.concat(moreClasses);
   return cns.join(" ");
+};
+
+const all_coordinates = ([start, end]: [Coordinate, Coordinate]) => {
+  const dir_i = Math.sign(end.i - start.i);
+  const dir_j = Math.sign(end.j - start.j);
+  const len = Math.max(Math.abs(end.i - start.i), Math.abs(end.j - start.j));
+
+  const coordinates = [];
+  for (let k = 0; k <= len; k++) {
+    coordinates.push({ i: start.i + dir_i * k, j: start.j + dir_j * k });
+  }
+  return coordinates;
 };
 
 const brett = [
@@ -196,11 +208,11 @@ export const App = () => {
                 key={c_key({ i, j })}
                 className={classnames(
                   {
-                    selected:
-                      selections.find(
-                        ([a, b]) =>
-                          (a.i === i && a.j === j) || (b.i === i && b.j === j)
-                      ) !== undefined,
+                    selected: selections.some(([a, b]) =>
+                      all_coordinates([a, b]).find(
+                        (c) => c.i === i && c.j === j
+                      )
+                    ),
                   },
                   "bokstav"
                 )}
@@ -211,7 +223,13 @@ export const App = () => {
                   }
                 }}
                 onMouseUp={() => {
-                  if (i !== start.i || j !== start.j) {
+                  const not_on_start = i !== start.i || j !== start.j;
+                  const is_on_diagonal_or_straight =
+                    i === start.i ||
+                    j === start.j ||
+                    Math.abs(i - start.i) === Math.abs(j - start.j);
+
+                  if (not_on_start && is_on_diagonal_or_straight) {
                     setIsSelecting(false);
                     setSelections([...selections, [start, { i, j }]]);
                   }

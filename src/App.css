@@ -45,6 +45,8 @@
   font-family: 'Montserrat', sans-serif;
   font-weight: 200;
   font-size: 25px;
+
+  z-index: 1;
 }
 
 .bokstav {
@@ -61,18 +63,21 @@
 
 .selections {
   position: absolute;
+  z-index: 0;
 }
 
 .selected {
   color: red;
+  font-weight: 300;
 }
 
 .selection-firkant {
   position: fixed;
-  opacity: 0.3;
+  opacity: 0.05;
   content: "";
   width: 50px;
   pointer-events: none;
+  filter: blur(3px);
 
   transform-origin: 50% 0;
 }

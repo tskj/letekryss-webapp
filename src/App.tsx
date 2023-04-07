@@ -4,6 +4,20 @@ import "./App.css";
 var r = document.querySelector(":root") as any;
 r.style.setProperty("--board-size", 15);
 
+const classnames = (
+  classes: Record<string, boolean>,
+  ...moreClasses: string[]
+) => {
+  let cns = [];
+  for (const [cn, t] of Object.entries(classes)) {
+    if (t) {
+      cns.push(cn);
+    }
+  }
+  cns = cns.concat(moreClasses);
+  return cns.join(" ");
+};
+
 const brett = [
   ["V", "P", "H", "N", "N", "A", "G", "N", "I", "R", "G", "N", "I", "F", "Ø"],
   ["N", "A", "I", "S", "R", "P", "H", "O", "R", "N", "S", "U", "N", "D", "S"],
@@ -180,15 +194,16 @@ export const App = () => {
                   if (r && refs.current) refs.current[c_key({ i, j })] = r;
                 }}
                 key={c_key({ i, j })}
-                className={
-                  "bokstav" +
-                  (selections.find(
-                    ([a, b]) =>
-                      (a.i === i && a.j === j) || (b.i === i && b.j === j)
-                  )
-                    ? " selected"
-                    : "")
-                }
+                className={classnames(
+                  {
+                    selected:
+                      selections.find(
+                        ([a, b]) =>
+                          (a.i === i && a.j === j) || (b.i === i && b.j === j)
+                      ) !== undefined,
+                  },
+                  "bokstav"
+                )}
                 onMouseDown={() => {
                   if (!isSelecting) {
                     setIsSelecting(true);

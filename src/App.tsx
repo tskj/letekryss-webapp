@@ -200,44 +200,54 @@ export const App = () => {
         </div>
         <div className="grid">
           {brett.map((row, j) =>
-            row.map((bokstav, i) => (
-              <div
-                ref={(r) => {
-                  if (r && refs.current) refs.current[c_key({ i, j })] = r;
-                }}
-                key={c_key({ i, j })}
-                className={classnames(
-                  {
-                    selected: selections.some(([a, b]) =>
-                      all_coordinates([a, b]).find(
-                        (c) => c.i === i && c.j === j
-                      )
-                    ),
-                  },
-                  "bokstav"
-                )}
-                onMouseDown={() => {
-                  if (!isSelecting) {
-                    setIsSelecting(true);
-                    setStart({ i, j });
-                  }
-                }}
-                onMouseUp={() => {
-                  const not_on_start = i !== start.i || j !== start.j;
-                  const is_on_diagonal_or_straight =
-                    i === start.i ||
-                    j === start.j ||
-                    Math.abs(i - start.i) === Math.abs(j - start.j);
+            row.map((bokstav, i) => {
+              const inside_selections = selections.filter(([a, b]) =>
+                all_coordinates([a, b]).find((c) => c.i === i && c.j === j)
+              );
+              const depth_in_selection =
+                inside_selections.length > 0 &&
+                all_coordinates(
+                  inside_selections[inside_selections.length - 1]
+                ).findIndex((c) => c.i === i && c.j === j);
+              return (
+                <div
+                  ref={(r) => {
+                    if (r && refs.current) refs.current[c_key({ i, j })] = r;
+                  }}
+                  key={c_key({ i, j })}
+                  style={{
+                    // transitionDelay: `calc(${Math.random()} * 0.3s)`,
+                    transitionDelay: `calc(${depth_in_selection} * 0.03s)`,
+                  }}
+                  className={classnames(
+                    {
+                      selected: inside_selections.length > 0,
+                    },
+                    "bokstav"
+                  )}
+                  onMouseDown={() => {
+                    if (!isSelecting) {
+                      setIsSelecting(true);
+                      setStart({ i, j });
+                    }
+                  }}
+                  onMouseUp={() => {
+                    const not_on_start = i !== start.i || j !== start.j;
+                    const is_on_diagonal_or_straight =
+                      i === start.i ||
+                      j === start.j ||
+                      Math.abs(i - start.i) === Math.abs(j - start.j);
 
-                  if (not_on_start && is_on_diagonal_or_straight) {
-                    setIsSelecting(false);
-                    setSelections([...selections, [start, { i, j }]]);
-                  }
-                }}
-              >
-                <div>{bokstav}</div>
-              </div>
-            ))
+                    if (not_on_start && is_on_diagonal_or_straight) {
+                      setIsSelecting(false);
+                      setSelections([...selections, [start, { i, j }]]);
+                    }
+                  }}
+                >
+                  <div>{bokstav}</div>
+                </div>
+              );
+            })
           )}
         </div>
       </header>

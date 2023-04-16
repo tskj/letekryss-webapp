@@ -149,7 +149,7 @@ export const App = () => {
               left: (mouseCoord.current?.clientX ?? 0) - radius,
             };
 
-            if (!start || !end) return;
+            if (!start || !end) return null;
 
             const dy = end.top - start.top;
             const dx = end.left - start.left;

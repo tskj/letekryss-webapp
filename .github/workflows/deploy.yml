@@ -19,10 +19,16 @@ jobs:
         run: npm ci
       - name: Build the website
         run: npm run build
+
+      - name: Copy code to a folder that isn't hidden by .gitignore
+        run: |
+          mkdir -p deploy
+          cp -r build/* deploy
+
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@4.1.1
         with:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           BRANCH: gh-pages
-          FOLDER: build
+          FOLDER: deploy
           SINGLE_COMMIT: true

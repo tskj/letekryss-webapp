@@ -40,42 +40,12 @@ const collect_letters =
     return letters;
   };
 
-const fasit = [
-  "FINGRINGA",
-  "SLEPERING",
-  "TRANSJERT",
-  "KAPABLESTE",
-  "KNOTTEN",
-  "URNEGRAV",
-  "JASSET",
-  "RYSJES",
-  "HUNDEMENN",
-  "HORNSUNDS",
-];
+const alphabet = "abcdefghijklmnopqrstuvwxyzæøå".toUpperCase().split("");
 
-const brett = [
-  ["V", "P", "H", "N", "N", "A", "G", "N", "I", "R", "G", "N", "I", "F", "Ø"],
-  ["N", "A", "I", "S", "R", "P", "H", "O", "R", "N", "S", "U", "N", "D", "S"],
-  ["J", "D", "R", "G", "J", "K", "R", "I", "J", "R", "E", "D", "N", "N", "Y"],
-  ["S", "N", "Z", "G", "N", "Å", "E", "D", "X", "Å", "F", "U", "N", "E", "G"],
-  ["Q", "L", "N", "Æ", "E", "I", "N", "T", "P", "H", "E", "E", "E", "C", "K"],
-  ["Ø", "M", "T", "J", "F", "N", "R", "K", "I", "J", "I", "L", "Æ", "A", "P"],
-  ["O", "N", "D", "R", "L", "E", "R", "E", "J", "O", "J", "K", "P", "K", "D"],
-  ["N", "D", "N", "F", "E", "R", "K", "U", "P", "R", "L", "A", "Ø", "N", "Æ"],
-  ["L", "K", "K", "E", "Y", "J", "B", "R", "W", "E", "B", "J", "S", "O", "H"],
-  ["E", "K", "K", "S", "M", "W", "S", "N", "K", "L", "L", "N", "V", "T", "I"],
-  ["Æ", "Å", "J", "F", "K", "E", "P", "N", "E", "D", "U", "S", "R", "T", "G"],
-  ["Ø", "E", "R", "L", "D", "P", "D", "S", "A", "B", "P", "T", "M", "E", "Å"],
-  ["S", "J", "A", "S", "S", "E", "T", "N", "M", "R", "P", "K", "N", "N", "G"],
-  ["G", "E", "F", "G", "E", "E", "Å", "D", "U", "V", "T", "V", "R", "Y", "M"],
-  ["A", "M", "M", "J", "O", "E", "Y", "O", "G", "H", "I", "F", "G", "J", "I"],
-];
-
-const waitingLetter =
-  brett[Math.floor(Math.random() * brett.length)][
-    Math.floor(Math.random() * brett.length)
-  ];
-const waitingBoard = brett.map((row) => row.map(() => waitingLetter));
+const waitingLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
+const waitingBoard = Array.from({ length: 15 }).map(() =>
+  Array.from({ length: 15 }).map(() => waitingLetter)
+);
 
 type Coordinate = {
   i: number;
@@ -94,6 +64,16 @@ export const App = () => {
   const [isSelecting, setIsSelecting] = useState(false);
   const [start, setStart] = useState<Coordinate>({ i: -1, j: -1 });
 
+  const [loading, setLoading] = useState(true);
+  const [brett, setBrett] = useState([]);
+  useEffect(() => {
+    fetch("https://letekryss-api.herokuapp.com/daily-board")
+      .then((x) => x.json())
+      .then((x) => x.board)
+      .then(setBrett)
+      .then(() => setLoading(false));
+  }, []);
+
   useEffect(() => {
     const listener = (e: any) => {
       if (isSelecting && e.key === "Escape") {
@@ -106,7 +86,6 @@ export const App = () => {
 
   useEffect(() => {
     const listener = (e: any) => {
-      console.log(e);
       if (
         e.target.contains &&
         e.target.contains(document.getElementsByClassName("grid")[0]) &&
@@ -134,18 +113,23 @@ export const App = () => {
     });
   }, []);
 
-  // temporary hack to simulate loading
-  const [loading, setLoading] = useState(true);
+  const [fasit, setFasit] = useState([]);
   useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-    }, Math.random() * 500 + 100);
-  }, []);
-
-  const found_words = selections.map(collect_letters(brett));
-  const has_found_all = fasit.every((f) =>
-    found_words.some((w) => w.join("") === f || w.reverse().join("") === f)
-  );
+    const found_words = selections.map(collect_letters(brett));
+    const body = JSON.stringify(
+      found_words.flatMap((x) => [x.join(""), x.reverse().join("")])
+    );
+    fetch("https://letekryss-api.herokuapp.com/check-solution", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body,
+    })
+      .then((x) => x.json())
+      .then((x) => x.correct)
+      .then(setFasit);
+  }, [brett, selections]);
 
   return (
     <div className="App">
@@ -369,17 +353,16 @@ export const App = () => {
         </div>
         <div style={{ position: "relative", left: -750 / 2, height: 0 }}>
           <div className="fasit">
-            {has_found_all &&
-              fasit.map((f, i) => (
-                <div
-                  style={{
-                    animationDelay: `calc(${i} * 0.1s)`,
-                  }}
-                >
-                  {/* f[0] + f.slice(1).toLowerCase() */}
-                  {f}
-                </div>
-              ))}
+            {fasit.map((f, i) => (
+              <div
+                style={{
+                  animationDelay: `calc(${i} * 0.1s)`,
+                }}
+              >
+                {/* f[0] + f.slice(1).toLowerCase() */}
+                {f}
+              </div>
+            ))}
           </div>
         </div>
       </header>

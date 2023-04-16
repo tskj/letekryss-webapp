@@ -131,7 +131,6 @@
   width: 750px;
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
 
   perspective: 800px;
   transform-style: preserve-3d;

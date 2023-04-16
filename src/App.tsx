@@ -115,6 +115,7 @@ export const App = () => {
 
   const [fasit, setFasit] = useState([]);
   useEffect(() => {
+    console.log("hmm");
     const found_words = selections.map(collect_letters(brett));
     const body = JSON.stringify(
       found_words.flatMap((x) => [x.join(""), x.reverse().join("")])

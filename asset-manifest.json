@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/letekryss-webapp/static/css/main.89c226e4.css",
-    "main.js": "/letekryss-webapp/static/js/main.86ca3a9a.js",
+    "main.js": "/letekryss-webapp/static/js/main.eeb2dd1e.js",
     "index.html": "/letekryss-webapp/index.html",
     "main.89c226e4.css.map": "/letekryss-webapp/static/css/main.89c226e4.css.map",
-    "main.86ca3a9a.js.map": "/letekryss-webapp/static/js/main.86ca3a9a.js.map"
+    "main.eeb2dd1e.js.map": "/letekryss-webapp/static/js/main.eeb2dd1e.js.map"
   },
   "entrypoints": [
     "static/css/main.89c226e4.css",
-    "static/js/main.86ca3a9a.js"
+    "static/js/main.eeb2dd1e.js"
   ]
 }

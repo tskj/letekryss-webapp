@@ -67,7 +67,7 @@ export const App = () => {
   const [loading, setLoading] = useState(true);
   const [brett, setBrett] = useState([]);
   useEffect(() => {
-    fetch("https://letekryss-api.herokuapp.com/daily-board")
+    fetch("https://letekryss-api.tskj.io/daily-board")
       .then((x) => x.json())
       .then((x) => x.board)
       .then(setBrett)
@@ -119,7 +119,7 @@ export const App = () => {
     const body = JSON.stringify(
       found_words.flatMap((x) => [x.join(""), x.reverse().join("")])
     );
-    fetch("https://letekryss-api.herokuapp.com/check-solution", {
+    fetch("https://letekryss-api.tskj.io/check-solution", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

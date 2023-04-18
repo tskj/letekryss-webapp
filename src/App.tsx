@@ -1,10 +1,13 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
+
 import {
   array,
   DecoderFunction,
   decodeType,
   number,
   record,
+  string,
 } from "typescript-json-decoder";
 import "./App.css";
 
@@ -93,13 +96,16 @@ const usePersistenState = <T extends unknown>(
   }, [key, initialDefaultValue]);
 
   const [state, setState] = useState(calcCurrentValue);
+
+  // key's changed
   useEffect(() => {
-    setState(calcCurrentValue());
+    const v = calcCurrentValue();
+    setState(v);
   }, [calcCurrentValue]);
 
   return [
     state,
-    (value: T) => {
+    (value) => {
       localStorage.setItem(key, JSON.stringify(value));
       setState(value);
     },
@@ -107,6 +113,8 @@ const usePersistenState = <T extends unknown>(
 };
 
 export const App = () => {
+  const [userId] = usePersistenState("user-id", uuidv4(), string);
+
   const [isSelecting, setIsSelecting] = useState(false);
   const [start, setStart] = useState<Coordinate>({ i: -1, j: -1 });
 
@@ -161,6 +169,7 @@ export const App = () => {
     return () => document.removeEventListener("mouseup", listener);
   }, [isSelecting]);
 
+  // TODO: move types and make decoders for all types
   const coordinateDecoder = record({ i: number, j: number });
 
   type Selection = decodeType<typeof selectionDecoder>;
@@ -190,13 +199,16 @@ export const App = () => {
     const body = JSON.stringify(
       found_words.flatMap((x) => [x.join(""), x.reverse().join("")])
     );
-    fetch(`https://letekryss-api.tskj.io/check-solution/${date}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body,
-    })
+    fetch(
+      `https://letekryss-api.tskj.io/check-solution/${date}?userId=${userId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body,
+      }
+    )
       .then((x) => x.json())
       .then((x) => x.correct)
       .then(setFasit);
@@ -234,7 +246,6 @@ export const App = () => {
             };
 
             const { length, transform } = calc(dx, dy);
-            console.log(length, transform);
 
             const k = c_key(selectionStart) + c_key(selectionEnd);
             const is_active_drag =

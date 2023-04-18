@@ -108,7 +108,7 @@ const usePersistenState = <T extends unknown>(
     const v = calcCurrentValue();
     localStorage.setItem(key, JSON.stringify(v));
     setState(v);
-  }, [calcCurrentValue]);
+  }, [key, calcCurrentValue]);
 
   return [
     state,

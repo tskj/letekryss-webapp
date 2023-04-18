@@ -343,7 +343,11 @@ export const App = () => {
                 all_coordinates(
                   inside_selections[inside_selections.length - 1]
                 ).findIndex((c) => c.i === i && c.j === j);
+
+              // TODO: cache math random here based on i and j, so that multiple
+              // renders don't mess with visuals
               const r = Math.random();
+
               return (
                 <div
                   ref={(r) => {

@@ -1,4 +1,11 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import {
+  array,
+  DecoderFunction,
+  decodeType,
+  number,
+  record,
+} from "typescript-json-decoder";
 import "./App.css";
 
 var r = document.querySelector(":root") as any;
@@ -60,11 +67,64 @@ const s_eq =
     (c_eq(a[0], b[0]) && c_eq(a[1], b[1])) ||
     (c_eq(a[1], b[0]) && c_eq(a[0], b[1]));
 
+/** ================== use effect hook ================== */
+
+/**
+ * defaultValue has same semantics as regular intial value to
+ * useState
+ *
+ * if key changes, stuff should update accordingly
+ *
+ * stuff is written to localStorage all the time, but only read when key changes
+ * (and initial load)
+ */
+const usePersistenState = <T extends unknown>(
+  key: string,
+  defaultValue: T,
+  decoder: DecoderFunction<T>
+): [T, (v: T) => void] => {
+  const [initialDefaultValue] = useState(defaultValue);
+
+  const calcCurrentValue = useCallback(() => {
+    const existingEncoded = localStorage.getItem(key);
+    const existingValue =
+      existingEncoded !== null ? decoder(JSON.parse(existingEncoded)) : null;
+    return existingValue ?? initialDefaultValue;
+  }, [key, initialDefaultValue]);
+
+  const [state, setState] = useState(calcCurrentValue);
+  useEffect(() => {
+    setState(calcCurrentValue());
+  }, [calcCurrentValue]);
+
+  return [
+    state,
+    (value: T) => {
+      localStorage.setItem(key, JSON.stringify(value));
+      setState(value);
+    },
+  ];
+};
+
 export const App = () => {
   const [isSelecting, setIsSelecting] = useState(false);
   const [start, setStart] = useState<Coordinate>({ i: -1, j: -1 });
 
   const [loading, setLoading] = useState(true);
+
+  /**
+   * we gotta delay fade-in of existing selections a little bit so they don't
+   * jump around
+   */
+  const [animationLoadingDelay, setAnimationLoadingDelay] = useState(true);
+  useEffect(() => {
+    if (!loading && animationLoadingDelay) {
+      setTimeout(() => {
+        setAnimationLoadingDelay(false);
+      }, 800);
+    }
+  }, [loading, animationLoadingDelay]);
+
   const [date, setDate] = useState("");
   const [brett, setBrett] = useState([]);
   useEffect(() => {
@@ -101,7 +161,15 @@ export const App = () => {
     return () => document.removeEventListener("mouseup", listener);
   }, [isSelecting]);
 
-  const [selections, setSelections] = useState<[Coordinate, Coordinate][]>([]);
+  const coordinateDecoder = record({ i: number, j: number });
+
+  type Selection = decodeType<typeof selectionDecoder>;
+  const selectionDecoder = array([coordinateDecoder, coordinateDecoder]);
+  const [selections, setSelections] = usePersistenState<Selection>(
+    "selection" + date,
+    [],
+    selectionDecoder
+  );
 
   const refs = useRef<Record<string, HTMLDivElement>>({});
 
@@ -166,6 +234,7 @@ export const App = () => {
             };
 
             const { length, transform } = calc(dx, dy);
+            console.log(length, transform);
 
             const k = c_key(selectionStart) + c_key(selectionEnd);
             const is_active_drag =
@@ -227,7 +296,7 @@ export const App = () => {
                     top: start.top + radius,
                     left: start.left,
                     height: length + 2 * radius,
-                    transform,
+                    transform: !animationLoadingDelay ? transform : "",
                   }}
                   ref={(x) => {
                     if (!x) return;
@@ -248,7 +317,12 @@ export const App = () => {
                 >
                   <div
                     // må deles opp for å unngå rendering artifacts i firefox
-                    className="selection-capsule"
+                    className={classnames(
+                      {
+                        "selection-fadein": !animationLoadingDelay,
+                      },
+                      "selection-capsule"
+                    )}
                     style={{
                       clipPath: `url(#${"capsule" + k})`,
                     }}
@@ -343,7 +417,7 @@ export const App = () => {
                       if (!loading) {
                         setTimeout(() => {
                           if (bokstavDiv) bokstavDiv.innerText = bokstav;
-                        }, r * 300 + 201);
+                        }, r * 300 + 200);
                       }
                     }}
                   >
@@ -363,7 +437,6 @@ export const App = () => {
                   animationDelay: `calc(${i} * 0.1s)`,
                 }}
               >
-                {/* f[0] + f.slice(1).toLowerCase() */}
                 {f}
               </div>
             ))}

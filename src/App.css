@@ -102,6 +102,19 @@
   }
 }
 
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.selection-fadein {
+  animation: fadein 0.5s ease forwards;
+}
+
 .selection-firkant {
   position: fixed;
   opacity: 0.05;
@@ -114,6 +127,7 @@
 }
 
 .selection-capsule {
+  opacity: 0;
   background-color: white;
   content: "";
   width: 100%;

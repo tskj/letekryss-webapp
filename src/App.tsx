@@ -70,6 +70,12 @@ const s_eq =
     (c_eq(a[0], b[0]) && c_eq(a[1], b[1])) ||
     (c_eq(a[1], b[0]) && c_eq(a[0], b[1]));
 
+// TODO: move types and make decoders for all types
+const coordinateDecoder = record({ i: number, j: number });
+
+type Selection = decodeType<typeof selectionDecoder>;
+const selectionDecoder = array([coordinateDecoder, coordinateDecoder]);
+
 /** ================== use effect hook ================== */
 
 /**
@@ -93,7 +99,7 @@ const usePersistenState = <T extends unknown>(
     const existingValue =
       existingEncoded !== null ? decoder(JSON.parse(existingEncoded)) : null;
     return existingValue ?? initialDefaultValue;
-  }, [key, initialDefaultValue]);
+  }, [key, initialDefaultValue, decoder]);
 
   const [state, setState] = useState(calcCurrentValue);
 
@@ -169,11 +175,6 @@ export const App = () => {
     return () => document.removeEventListener("mouseup", listener);
   }, [isSelecting]);
 
-  // TODO: move types and make decoders for all types
-  const coordinateDecoder = record({ i: number, j: number });
-
-  type Selection = decodeType<typeof selectionDecoder>;
-  const selectionDecoder = array([coordinateDecoder, coordinateDecoder]);
   const [selections, setSelections] = usePersistenState<Selection>(
     "selection" + date,
     [],
@@ -212,7 +213,7 @@ export const App = () => {
       .then((x) => x.json())
       .then((x) => x.correct)
       .then(setFasit);
-  }, [brett, date, selections]);
+  }, [brett, date, selections, userId]);
 
   return (
     <div className="App">

@@ -132,7 +132,7 @@ export const App = () => {
       .then((x) => x.json())
       .then((x) => x.correct)
       .then(setFasit);
-  }, [brett, selections]);
+  }, [brett, date, selections]);
 
   return (
     <div className="App">
@@ -259,7 +259,7 @@ export const App = () => {
           })}
         </div>
         <div className="grid">
-          {(loading ? waitingBoard : brett).map((row, j) =>
+          {(loading ? waitingBoard : brett).flatMap((row, j) =>
             row.map((bokstav, i) => {
               const inside_selections = selections.filter(([a, b]) =>
                 all_coordinates([a, b]).find((c) => c.i === i && c.j === j)
@@ -358,6 +358,7 @@ export const App = () => {
           <div className="fasit">
             {fasit.map((f, i) => (
               <div
+                key={f}
                 style={{
                   animationDelay: `calc(${i} * 0.1s)`,
                 }}

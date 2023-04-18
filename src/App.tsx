@@ -106,6 +106,7 @@ const usePersistenState = <T extends unknown>(
   // key's changed
   useEffect(() => {
     const v = calcCurrentValue();
+    localStorage.setItem(key, JSON.stringify(v));
     setState(v);
   }, [calcCurrentValue]);
 

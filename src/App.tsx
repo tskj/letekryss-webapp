@@ -65,13 +65,16 @@ export const App = () => {
   const [start, setStart] = useState<Coordinate>({ i: -1, j: -1 });
 
   const [loading, setLoading] = useState(true);
+  const [date, setDate] = useState("");
   const [brett, setBrett] = useState([]);
   useEffect(() => {
     fetch("https://letekryss-api.tskj.io/daily-board")
       .then((x) => x.json())
-      .then((x) => x.board)
-      .then(setBrett)
-      .then(() => setLoading(false));
+      .then((x) => {
+        setBrett(x.board);
+        setDate(x.date);
+        setLoading(false);
+      });
   }, []);
 
   useEffect(() => {
@@ -119,7 +122,7 @@ export const App = () => {
     const body = JSON.stringify(
       found_words.flatMap((x) => [x.join(""), x.reverse().join("")])
     );
-    fetch("https://letekryss-api.tskj.io/check-solution", {
+    fetch(`https://letekryss-api.tskj.io/check-solution/${date}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

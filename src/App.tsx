@@ -16,6 +16,15 @@ var r = document.querySelector(":root") as any;
 r.style.setProperty("--board-size", 15);
 r.style.setProperty("--letter-size", "50px");
 
+const mediaQuery = window.matchMedia("(max-width: 768px)");
+mediaQuery.addEventListener("change", (e) => {
+  if (e.matches) {
+    r.style.setProperty("--letter-size", "25px");
+  } else {
+    r.style.setProperty("--letter-size", "50px");
+  }
+});
+
 const classnames = (
   classes: Record<string, boolean>,
   ...moreClasses: string[]

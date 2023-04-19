@@ -333,7 +333,10 @@ export const App = () => {
                     // må deles opp for å unngå rendering artifacts i firefox
                     className={classnames(
                       {
-                        "selection-fadein": !animationLoadingDelay,
+                        "selection-hidden": loading || animationLoadingDelay,
+                        "selection-not-hidden": !(
+                          loading || animationLoadingDelay
+                        ),
                       },
                       "selection-capsule"
                     )}
@@ -383,7 +386,10 @@ export const App = () => {
                   }}
                   className={classnames(
                     {
-                      selected: inside_selections.length > 0,
+                      selected:
+                        inside_selections.length > 0 &&
+                        !loading &&
+                        !animationLoadingDelay,
                       loading: loading,
                       loaded: !loading,
                     },

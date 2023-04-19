@@ -23,6 +23,7 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
+  padding-bottom: 100px;
 }
 
 .App-link {
@@ -40,12 +41,12 @@
 
 .grid {
   display : grid;
-  grid-template-columns : repeat(var(--board-size), 50px);
-  grid-template-rows : repeat(var(--board-size), 50px);
+  grid-template-columns : repeat(var(--board-size), var(--letter-size));
+  grid-template-rows : repeat(var(--board-size), var(--letter-size));
 
   font-family: 'Montserrat', sans-serif;
   font-weight: 200;
-  font-size: 25px;
+  font-size: calc(var(--letter-size) / 2);
 
   z-index: 1;
   perspective: 800px;
@@ -119,7 +120,7 @@
   position: fixed;
   opacity: 0.05;
   content: "";
-  width: 50px;
+  width: var(--letter-size);
   pointer-events: none;
   filter: blur(3px);
 
@@ -134,15 +135,21 @@
   height: 100%;
 }
 
+.fasit-container {
+  position: relative;
+  left: calc(-1 * var(--board-size) * var(--letter-size) / 2);
+  height: 0;
+}
+
 .fasit {
   font-family: 'Montserrat', sans-serif;
   font-weight: 200;
-  font-size: 17px;
+  font-size: calc(var(--letter-size) / 2.9);
 
   position: absolute;
-  margin-top: 20px;
-  margin-left: 15px;
-  width: 750px;
+  margin-top: calc(var(--letter-size) / 1.5);
+  margin-left: calc(var(--letter-size) / 3.3);
+  width: calc(var(--board-size) * var(--letter-size));
   display: flex;
   flex-wrap: wrap;
 
@@ -151,8 +158,8 @@
 }
 
 .fasit>div {
-  margin-right: 30px;
-  margin-bottom: 10px;
+  margin-right: calc(3 * var(--letter-size) / 5);
+  margin-bottom: calc(var(--letter-size) / 5);
   opacity: 0;
   transform: rotateX(0deg);
   animation: spinFade 0.4s linear forwards;

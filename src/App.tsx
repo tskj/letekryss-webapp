@@ -13,6 +13,7 @@ import "./App.css";
 
 var r = document.querySelector(":root") as any;
 r.style.setProperty("--board-size", 15);
+r.style.setProperty("--letter-size", "50px");
 
 const classnames = (
   classes: Record<string, boolean>,
@@ -445,7 +446,7 @@ export const App = () => {
             })
           )}
         </div>
-        <div style={{ position: "relative", left: -750 / 2, height: 0 }}>
+        <div className="fasit-container">
           <div className="fasit">
             {fasit.map((f, i) => (
               <div

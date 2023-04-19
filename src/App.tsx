@@ -120,6 +120,11 @@ const usePersistenState = <T extends unknown>(
   ];
 };
 
+const useRerender = () => {
+  const [, setB] = useState(false);
+  return useCallback(() => setB((b) => !b), []);
+};
+
 const cache = new Map<string, number>();
 const memoize = (key: string, f: () => number) => {
   if (cache.has(key)) {
@@ -227,6 +232,13 @@ export const App = () => {
       .then((x) => x.correct)
       .then(setFasit);
   }, [brett, date, selections, userId]);
+
+  const rerender = useRerender();
+  useEffect(() => {
+    window.onresize = () => {
+      rerender();
+    };
+  }, [rerender]);
 
   return (
     <div className="App">

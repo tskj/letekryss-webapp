@@ -16,14 +16,14 @@
 
 .App-header {
   background-color: #282c34;
-  min-height: 100vh;
+  min-height: calc(100vh - 150px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
-  padding-bottom: 100px;
+  padding-bottom: 150px;
 }
 
 .App-link {
@@ -113,7 +113,7 @@
 }
 
 .selection-firkant {
-  position: fixed;
+  position: relative;
   opacity: 0.05;
   content: "";
   width: var(--letter-size);
@@ -124,6 +124,7 @@
 }
 
 .selection-capsule {
+  position: relative;
   background-color: white;
   content: "";
   width: 100%;

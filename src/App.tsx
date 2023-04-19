@@ -8,6 +8,7 @@ import {
   number,
   record,
   string,
+  tuple,
 } from "typescript-json-decoder";
 import "./App.css";
 
@@ -71,11 +72,16 @@ const s_eq =
     (c_eq(a[0], b[0]) && c_eq(a[1], b[1])) ||
     (c_eq(a[1], b[0]) && c_eq(a[0], b[1]));
 
+const s_key = ([c1, c2]: Selection) => `start:${c_key(c1)};end:${c_key(c2)}`;
+
 // TODO: move types and make decoders for all types
 const coordinateDecoder = record({ i: number, j: number });
 
 type Selection = decodeType<typeof selectionDecoder>;
-const selectionDecoder = array([coordinateDecoder, coordinateDecoder]);
+const selectionDecoder = tuple(coordinateDecoder, coordinateDecoder);
+
+type Selections = decodeType<typeof selectionsDecoder>;
+const selectionsDecoder = array(selectionDecoder);
 
 /** ================== use effect hook ================== */
 
@@ -193,13 +199,14 @@ export const App = () => {
     return () => document.removeEventListener("mouseup", listener);
   }, [isSelecting]);
 
-  const [selections, setSelections] = usePersistenState<Selection>(
+  const [selections, setSelections] = usePersistenState<Selections>(
     "selection" + date,
     [],
-    selectionDecoder
+    selectionsDecoder
   );
 
   const refs = useRef<Record<string, HTMLDivElement>>({});
+  const selectionRefs = useRef<Record<string, HTMLDivElement>>({});
 
   type MousePos = { clientX: number; clientY: number };
   const mouseCoord = useRef<MousePos>(null);
@@ -239,6 +246,33 @@ export const App = () => {
       rerender();
     };
   }, [rerender]);
+
+  const gridRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (!grid) return;
+
+    let x = grid.getBoundingClientRect().x;
+    let y = grid.getBoundingClientRect().y;
+
+    for (const div of Object.values(selectionRefs.current ?? {})) {
+      div.style.top = "0";
+      div.style.left = "0";
+    }
+
+    const onscroll = () => {
+      const dx = grid.getBoundingClientRect().x - x;
+      const dy = grid.getBoundingClientRect().y - y;
+
+      for (const div of Object.values(selectionRefs.current ?? {})) {
+        div.style.top = `${dy}px`;
+        div.style.left = `${dx}px`;
+      }
+    };
+
+    window.addEventListener("scroll", onscroll);
+    return () => window.removeEventListener("scroll", onscroll);
+  });
 
   return (
     <div className="App">
@@ -328,51 +362,61 @@ export const App = () => {
                   </defs>
                 </svg>
                 <div
-                  className="selection-firkant"
-                  style={{
-                    top: start.top + radius,
-                    left: start.left,
-                    height: length + 2 * radius,
-                    transform: !animationLoadingDelay ? transform : "",
-                  }}
-                  ref={(x) => {
-                    if (!x) return;
-                    if (!is_active_drag) return;
-
-                    const f = update.current;
-                    const new_f = (m: MousePos) => {
-                      f(m);
-                      const { length, transform } = calc(
-                        m.clientX - start.left - radius,
-                        m.clientY - start.top - radius
-                      );
-                      x.style.height = `${length + 2 * radius}px`;
-                      x.style.transform = transform;
-                    };
-                    update.current = new_f;
+                  style={{ position: "fixed" }}
+                  ref={(r) => {
+                    if (r && refs.current)
+                      selectionRefs.current[
+                        s_key([selectionStart, selectionEnd])
+                      ] = r;
                   }}
                 >
                   <div
-                    // må deles opp for å unngå rendering artifacts i firefox
-                    className={classnames(
-                      {
-                        "selection-hidden": loading || animationLoadingDelay,
-                        "selection-not-hidden": !(
-                          loading || animationLoadingDelay
-                        ),
-                      },
-                      "selection-capsule"
-                    )}
+                    className="selection-firkant"
                     style={{
-                      clipPath: `url(#${"capsule" + k})`,
+                      top: start.top + radius,
+                      left: start.left,
+                      height: length + 2 * radius,
+                      transform: !animationLoadingDelay ? transform : "",
                     }}
-                  />
+                    ref={(x) => {
+                      if (!x) return;
+                      if (!is_active_drag) return;
+
+                      const f = update.current;
+                      const new_f = (m: MousePos) => {
+                        f(m);
+                        const { length, transform } = calc(
+                          m.clientX - start.left - radius,
+                          m.clientY - start.top - radius
+                        );
+                        x.style.height = `${length + 2 * radius}px`;
+                        x.style.transform = transform;
+                      };
+                      update.current = new_f;
+                    }}
+                  >
+                    <div
+                      // må deles opp for å unngå rendering artifacts i firefox
+                      className={classnames(
+                        {
+                          "selection-hidden": loading || animationLoadingDelay,
+                          "selection-not-hidden": !(
+                            loading || animationLoadingDelay
+                          ),
+                        },
+                        "selection-capsule"
+                      )}
+                      style={{
+                        clipPath: `url(#${"capsule" + k})`,
+                      }}
+                    />
+                  </div>
                 </div>
               </Fragment>
             );
           })}
         </div>
-        <div className="grid">
+        <div className="grid" ref={gridRef}>
           {(loading ? waitingBoard : brett).flatMap((row, j) =>
             row.map((bokstav, i) => {
               const inside_selections = selections.filter(([a, b]) =>

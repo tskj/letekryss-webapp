@@ -53,18 +53,6 @@
   transform-style: preserve-3d;
 }
 
-.bokstav {
-  cursor: pointer;
-  user-select: none;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.bokstav:hover {
-  font-weight: 300;
-}
-
 .selections {
   position: absolute;
   z-index: 0;
@@ -72,33 +60,45 @@
 
 .selected {
   color: red;
+  transition: color 0.8s ease;
+}
+
+.bokstav {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transform: rotateX(0deg);
+}
+
+.bokstav:hover {
   font-weight: 300;
-  transition: color 0.3s ease;
 }
 
 .loading {
   opacity: 0.3;
+  transform: rotateX(0deg);
 }
 
 .loaded {
-  opacity: 1;
-  transition: opacity 0.03s ease;
-
+  opacity: 0.3;
   transform: rotateX(0deg);
-  animation: spin 0.4s linear forwards;
 }
 
 @keyframes spin {
   from {
+    opacity: 0.3;
     transform: rotateX(0deg);
   }
-  49.9% {
-    transform: rotateX(-90deg);
+  49.99% {
+    transform: rotateX(-89deg);
   }
   50% {
     transform: rotateX(90deg)
   }
   to {
+    opacity: 1;
     transform: rotateX(0deg);
   }
 }
@@ -109,7 +109,7 @@
 
 .selection-not-hidden {
   opacity: 1;
-  transition: opacity 0.5s ease;
+  transition: opacity 0.8s ease;
 }
 
 .selection-firkant {

@@ -120,6 +120,17 @@ const usePersistenState = <T extends unknown>(
   ];
 };
 
+const cache = new Map<string, number>();
+const memoize = (key: string, f: () => number) => {
+  if (cache.has(key)) {
+    return cache.get(key) as number;
+  } else {
+    const v = f();
+    cache.set(key, v);
+    return v;
+  }
+};
+
 export const App = () => {
   const [userId] = usePersistenState("user-id", uuidv4(), string);
 
@@ -355,15 +366,18 @@ export const App = () => {
               const inside_selections = selections.filter(([a, b]) =>
                 all_coordinates([a, b]).find((c) => c.i === i && c.j === j)
               );
+
+              // this was used to animate the fade of the letters in the
+              // direction of the markings
+              /*
               const depth_in_selection =
                 inside_selections.length > 0 &&
                 all_coordinates(
                   inside_selections[inside_selections.length - 1]
                 ).findIndex((c) => c.i === i && c.j === j);
+                */
 
-              // TODO: cache math random here based on i and j, so that multiple
-              // renders don't mess with visuals
-              const r = Math.random();
+              const r = memoize(`${bokstav}:${i}:${j}`, Math.random);
 
               return (
                 <div
@@ -371,25 +385,16 @@ export const App = () => {
                     if (r && refs.current) refs.current[c_key({ i, j })] = r;
                   }}
                   key={c_key({ i, j })}
-                  style={{
-                    // transitionDelay: `calc(${Math.random()} * 0.3s)`,
-                    transitionProperty:
-                      depth_in_selection !== false ? "color" : "opacity",
-                    transitionDelay:
-                      depth_in_selection !== false
-                        ? `calc(${depth_in_selection} * 0.03s)`
-                        : `calc(${r} * 0.3s + 0.2s)`,
-                    animationDelay:
-                      depth_in_selection !== false
-                        ? `calc(${depth_in_selection} * 0.03s)`
-                        : `calc(${r} * 0.3s)`,
-                  }}
+                  style={
+                    loading
+                      ? {}
+                      : {
+                          animation: "spin 0.4s linear forwards",
+                          animationDelay: `${0.3 * r}s`,
+                        }
+                  }
                   className={classnames(
                     {
-                      selected:
-                        inside_selections.length > 0 &&
-                        !loading &&
-                        !animationLoadingDelay,
                       loading: loading,
                       loaded: !loading,
                     },
@@ -441,9 +446,26 @@ export const App = () => {
                       if (!loading) {
                         setTimeout(() => {
                           if (bokstavDiv) bokstavDiv.innerText = bokstav;
-                        }, r * 300 + 200);
+                        }, r * 300 + 400 / 2);
                       }
                     }}
+                    style={
+                      inside_selections.length > 0
+                        ? {
+                            /*
+                            transitionProperty: "color",
+                            transitionDelay: `calc(${depth_in_selection} * 0.03s)`,
+                            animationDelay: `calc(${depth_in_selection} * 0.03s)`,
+                            */
+                          }
+                        : {}
+                    }
+                    className={classnames({
+                      selected:
+                        inside_selections.length > 0 &&
+                        !loading &&
+                        !animationLoadingDelay,
+                    })}
                   >
                     {waitingLetter}
                   </div>

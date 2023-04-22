@@ -224,7 +224,7 @@ export const App = () => {
     });
   }, []);
 
-  const [fasit, setFasit] = useState([]);
+  const [fasit, setFasit] = useState<string[]>([]);
   useEffect(() => {
     const found_words = selections.map(collect_letters(brett));
     const body = JSON.stringify(
@@ -428,15 +428,10 @@ export const App = () => {
                 all_coordinates([a, b]).find((c) => c.i === i && c.j === j)
               );
 
-              // this was used to animate the fade of the letters in the
-              // direction of the markings
-              /*
-              const depth_in_selection =
-                inside_selections.length > 0 &&
-                all_coordinates(
-                  inside_selections[inside_selections.length - 1]
-                ).findIndex((c) => c.i === i && c.j === j);
-                */
+              const selected = inside_selections
+                .map(collect_letters(brett))
+                .flatMap((x) => [x.join(""), x.reverse().join("")])
+                .some((x) => fasit.includes(x));
 
               const r = memoize(`${bokstav}:${i}:${j}`, Math.random);
 
@@ -522,10 +517,7 @@ export const App = () => {
                         : {}
                     }
                     className={classnames({
-                      selected:
-                        inside_selections.length > 0 &&
-                        !loading &&
-                        !animationLoadingDelay,
+                      selected: selected && !loading && !animationLoadingDelay,
                     })}
                   >
                     {waitingLetter}

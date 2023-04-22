@@ -391,6 +391,31 @@ export const App = () => {
             const dx = end.left - start.left;
 
             const calc = (dx: number, dy: number) => {
+              /** ==== clamp ==== */
+              const centroid = (a: [number, number], b: [number, number]) =>
+                [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as const;
+              const dist = (
+                a: readonly [number, number],
+                b: [number, number]
+              ) => Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2);
+              const clampToAxis = [
+                [dx, 0],
+                centroid([dx, dx], [dy, dy]),
+                [0, dy],
+                centroid([dx, -dx], [-dy, dy]),
+              ] as const;
+
+              let smallestDist = Infinity;
+              for (const clamp of clampToAxis) {
+                const d = dist(clamp, [dx, dy]);
+                if (d < 50 && d < smallestDist) {
+                  dx = clamp[0];
+                  dy = clamp[1];
+                  smallestDist = d;
+                }
+              }
+              /** ==== clamp ==== */
+
               const length = Math.sqrt(dx ** 2 + dy ** 2);
               const orientation = Math.atan2(dy, dx) - Math.PI / 2;
 

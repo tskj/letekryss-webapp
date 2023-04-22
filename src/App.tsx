@@ -1,4 +1,11 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { v4 as uuidv4 } from "uuid";
 
 import {
@@ -35,7 +42,7 @@ const classnames = (
   return cns.join(" ");
 };
 
-const all_coordinates = ([start, end]: [Coordinate, Coordinate]) => {
+const all_coordinates = ([start, end]: Selection) => {
   const dir_i = Math.sign(end.i - start.i);
   const dir_j = Math.sign(end.j - start.j);
   const len = Math.max(Math.abs(end.i - start.i), Math.abs(end.j - start.j));
@@ -47,15 +54,14 @@ const all_coordinates = ([start, end]: [Coordinate, Coordinate]) => {
   return coordinates;
 };
 
-const collect_letters =
-  (board: string[][]) => (s: [Coordinate, Coordinate]) => {
-    const all = all_coordinates(s);
-    const letters = [];
-    for (const { j, i } of all) {
-      letters.push(board[j][i]);
-    }
-    return letters;
-  };
+const collect_letters = (board: string[][]) => (s: Selection) => {
+  const all = all_coordinates(s);
+  const letters = [];
+  for (const { j, i } of all) {
+    letters.push(board[j][i]);
+  }
+  return letters;
+};
 
 const alphabet = "abcdefghijklmnopqrstuvwxyzæøå".toUpperCase().split("");
 
@@ -124,10 +130,13 @@ const usePersistenState = <T extends unknown>(
 
   return [
     state,
-    (value) => {
-      localStorage.setItem(key, JSON.stringify(value));
-      setState(value);
-    },
+    useCallback(
+      (value) => {
+        localStorage.setItem(key, JSON.stringify(value));
+        setState(value);
+      },
+      [key]
+    ),
   ];
 };
 
@@ -209,6 +218,85 @@ export const App = () => {
     [],
     selectionsDecoder
   );
+
+  /**
+   * we go over the existing selections and compare them to the last selection
+   * (last in list) to see if they overlap, in which case we either combine
+   * them to make one longer selection, or we remove them completely
+   */
+  useLayoutEffect(() => {
+    if (selections.length === 0) return;
+
+    const forDeletion = new Set<string>();
+    const forCreation: Selection[] = [];
+
+    const selection_a = selections[selections.length - 1];
+
+    const key_a = s_key(selection_a);
+
+    for (const selection_b of selections) {
+      const key_b = s_key(selection_b);
+
+      if (key_a === key_b) continue;
+
+      const coordinates_a = all_coordinates(selection_a).map(c_key);
+      const coordinates_b = all_coordinates(selection_b).map(c_key);
+
+      if (coordinates_a.every((a) => coordinates_b.includes(a))) {
+        forDeletion.add(key_a);
+        forDeletion.add(key_b);
+
+        continue;
+      }
+
+      const min_i = Math.min(
+        ...selection_a.map((s) => s.i),
+        ...selection_b.map((s) => s.i)
+      );
+      const min_j = Math.min(
+        ...selection_a.map((s) => s.j),
+        ...selection_b.map((s) => s.j)
+      );
+      const max_i = Math.max(
+        ...selection_a.map((s) => s.i),
+        ...selection_b.map((s) => s.i)
+      );
+      const max_j = Math.max(
+        ...selection_a.map((s) => s.j),
+        ...selection_b.map((s) => s.j)
+      );
+
+      const continuousStart = { i: min_i, j: min_j };
+      const continuousEnd = { i: max_i, j: max_j };
+
+      const continuousLine = all_coordinates([
+        continuousStart,
+        continuousEnd,
+      ]).map(c_key);
+
+      // they're the same line essentially
+      if (
+        continuousLine.every(
+          (c) => coordinates_a.includes(c) || coordinates_b.includes(c)
+        ) &&
+        coordinates_a.every((a) => continuousLine.includes(a)) &&
+        coordinates_b.every((b) => continuousLine.includes(b))
+      ) {
+        forDeletion.add(key_a);
+        forDeletion.add(key_b);
+        forCreation.push([continuousStart, continuousEnd]);
+      }
+    }
+
+    if (forDeletion.size > 0) {
+      const afterDeletion = selections.filter(
+        (s) => !forDeletion.has(s_key(s))
+      );
+      if (forCreation.length > 0) {
+        setSelections(afterDeletion.concat(forCreation));
+      } else setSelections(afterDeletion);
+    }
+  }, [selections, setSelections]);
 
   const refs = useRef<Record<string, HTMLDivElement>>({});
   const selectionRefs = useRef<Record<string, HTMLDivElement>>({});

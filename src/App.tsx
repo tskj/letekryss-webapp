@@ -17,7 +17,8 @@ r.style.setProperty("--board-size", 15);
 r.style.setProperty(
   "--letter-size",
   // plus 3 for three letter heights for fasit (should be enough)
-  "clamp(20px, min(calc(100vh / (var(--board-size) + 3)), calc(100vw / var(--board-size))), 50px)"
+  // 1 for header
+  "clamp(20px, min(calc(100vh / (var(--board-size) + 3 + 1)), calc(100vw / var(--board-size))), 50px)"
 );
 
 const classnames = (

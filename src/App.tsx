@@ -313,11 +313,14 @@ export const App = () => {
   }, []);
 
   const [fasit, setFasit] = useState<string[]>([]);
+  const fasitUnracer = useRef(0);
   useEffect(() => {
     const found_words = selections.map(collect_letters(brett));
     const body = JSON.stringify(
       found_words.flatMap((x) => [x.join(""), x.reverse().join("")])
     );
+    fasitUnracer.current++;
+    const thisRacer = fasitUnracer.current;
     fetch(
       `https://letekryss-api.tskj.io/check-solution/${date}?userId=${userId}`,
       {
@@ -329,8 +332,9 @@ export const App = () => {
       }
     )
       .then((x) => x.json())
-      .then((x) => x.correct)
-      .then(setFasit);
+      .then((x) => {
+        if (fasitUnracer.current === thisRacer) setFasit(x.correct);
+      });
   }, [brett, date, selections, userId]);
 
   const rerender = useRerender();

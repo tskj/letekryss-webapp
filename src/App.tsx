@@ -691,6 +691,8 @@ export const App = () => {
                     if (not_on_start && isSelecting) {
                       setIsSelecting(false);
 
+                      if (isDone) return;
+
                       const new_selection: [Coordinate, Coordinate] = [
                         start,
                         { i, j },

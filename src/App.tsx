@@ -454,6 +454,14 @@ export const App = () => {
     return () => window.removeEventListener("scroll", onscroll);
   });
 
+  // TODO: false
+  const [showFinishWindow, setShowFinishWindow] = useState(true);
+  useEffect(() => {
+    if (isDone && isCelebrating) {
+      setShowFinishWindow(true);
+    }
+  }, [isDone, isCelebrating]);
+
   return (
     <div className="App">
       <header className="App-header">
@@ -756,6 +764,14 @@ export const App = () => {
           </div>
         </div>
       </header>
+      {showFinishWindow && (
+        <>
+          <div className="backdrop" />
+          <div className="modal-container">
+            <div className="modal">Gratulerer!</div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import {
   array,
+  boolean,
   DecoderFunction,
   decodeType,
   number,
@@ -19,8 +20,11 @@ import {
 } from "typescript-json-decoder";
 import "./App.css";
 
+// TODO: denne må bestemmes fra faktiske brettet eller backenden
+const boardSize = 15;
+
 var r = document.querySelector(":root") as any;
-r.style.setProperty("--board-size", 15);
+r.style.setProperty("--board-size", boardSize);
 r.style.setProperty(
   "--letter-size",
   // plus 3 for three letter heights for fasit (should be enough)
@@ -145,16 +149,52 @@ const useRerender = () => {
   return useCallback(() => setB((b) => !b), []);
 };
 
-const cache = new Map<string, number>();
-const memoize = (key: string, f: () => number) => {
-  if (cache.has(key)) {
-    return cache.get(key) as number;
-  } else {
-    const v = f();
-    cache.set(key, v);
-    return v;
-  }
+const logistic = (x: number) => {
+  const ex = Math.exp(-10 * (x - 0.5));
+  return 1 / (1 + ex);
 };
+
+/**
+ * Box-Muller transformation
+ */
+const normalRandom = (mean: number, stdDev: number) => {
+  const u1 = Math.random();
+  const u2 = Math.random();
+
+  const z1 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+
+  return z1 * stdDev + mean;
+};
+
+const memoize = <T extends unknown>(
+  hash: (x: T) => string,
+  f: (x: T) => number
+) => {
+  const cache = new Map<string, number>();
+  return (x: T) => {
+    const key = hash(x);
+    if (cache.has(key)) {
+      return cache.get(key) as number;
+    } else {
+      const v = f(x);
+      cache.set(key, v);
+      return v;
+    }
+  };
+};
+
+const fade_in_delay = memoize<{ bokstav: string; i: number; j: number }>(
+  ({ bokstav, i, j }) => `${bokstav}:${i}:${j}`,
+  Math.random
+);
+
+const celebration_delay = memoize<Coordinate>(
+  ({ i, j }) => `${i}:${j}`,
+  ({ i, j }) => {
+    let z = (i - j + boardSize - 1) / boardSize;
+    return logistic(z) + normalRandom(0.5, 0.2);
+  }
+);
 
 export const App = () => {
   const [userId] = usePersistenState("user-id", uuidv4(), string);
@@ -189,6 +229,9 @@ export const App = () => {
       });
   }, []);
 
+  /**
+   * deselect with esc
+   */
   useEffect(() => {
     const listener = (e: any) => {
       if (isSelecting && e.key === "Escape") {
@@ -312,6 +355,12 @@ export const App = () => {
     });
   }, []);
 
+  const [isDone, setIsDone] = usePersistenState(
+    "has-completed:" + date,
+    false,
+    boolean
+  );
+  const [isCelebrating, setIsCelebrating] = useState(false);
   const [fasit, setFasit] = useState<string[]>([]);
   const fasitUnracer = useRef(0);
   useEffect(() => {
@@ -333,9 +382,16 @@ export const App = () => {
     )
       .then((x) => x.json())
       .then((x) => {
-        if (fasitUnracer.current === thisRacer) setFasit(x.correct);
+        if (fasitUnracer.current === thisRacer) {
+          setFasit(x.correct);
+          // TODO: send actual number from backend
+          if (x.correct.length === 10) {
+            if (!isDone) setIsCelebrating(true);
+            setIsDone(true);
+          }
+        }
       });
-  }, [brett, date, selections, userId]);
+  }, [brett, date, selections, userId, isDone]);
 
   const rerender = useRerender();
   useEffect(() => {
@@ -554,26 +610,34 @@ export const App = () => {
                 .flatMap((x) => [x.join(""), x.reverse().join("")])
                 .some((x) => fasit.includes(x));
 
-              const r = memoize(`${bokstav}:${i}:${j}`, Math.random);
+              const r = fade_in_delay({ bokstav, i, j });
+              const r_c = celebration_delay({ i, j });
 
               return (
                 <div
-                  ref={(r) => {
-                    if (r && refs.current) refs.current[c_key({ i, j })] = r;
+                  ref={(ref) => {
+                    if (ref && refs.current)
+                      refs.current[c_key({ i, j })] = ref;
                   }}
                   key={c_key({ i, j })}
                   style={
                     loading
                       ? {}
-                      : {
+                      : !isCelebrating
+                      ? {
                           animation: "spin 0.4s linear forwards",
                           animationDelay: `${0.3 * r}s`,
+                        }
+                      : {
+                          animation: "celebration 1.8s linear forwards",
+                          animationDelay: `${0.4 * r_c}s`,
                         }
                   }
                   className={classnames(
                     {
                       loading: loading,
-                      loaded: !loading,
+                      loaded: !loading && !isDone,
+                      celebrating: isCelebrating,
                     },
                     "bokstav"
                   )}

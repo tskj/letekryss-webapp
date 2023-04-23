@@ -77,6 +77,7 @@
   flex-direction: column;
   justify-content: center;
   transform: rotateX(0deg);
+  opacity: 1;
 }
 
 .bokstav:hover {
@@ -93,6 +94,10 @@
   transform: rotateX(0deg);
 }
 
+.celebrating {
+  opacity: 1;
+}
+
 @keyframes spin {
   from {
     opacity: 0.3;
@@ -107,6 +112,17 @@
   to {
     opacity: 1;
     transform: rotateX(0deg);
+  }
+}
+
+@keyframes celebration {
+  from {
+    opacity: 1;
+    transform: rotateX(0deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotateX(-360deg);
   }
 }
 

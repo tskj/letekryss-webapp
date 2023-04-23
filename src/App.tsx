@@ -406,13 +406,17 @@ export const App = () => {
               ] as const;
 
               let smallestDist = Infinity;
+              let closestClamp: null | readonly [number, number] = null;
               for (const clamp of clampToAxis) {
                 const d = dist(clamp, [dx, dy]);
-                if (d < 50 && d < smallestDist) {
-                  dx = clamp[0];
-                  dy = clamp[1];
+                if (d < 50 && d <= smallestDist) {
+                  closestClamp = clamp;
                   smallestDist = d;
                 }
+              }
+              if (closestClamp) {
+                dx = closestClamp[0];
+                dy = closestClamp[1];
               }
               /** ==== clamp ==== */
 

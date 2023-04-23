@@ -155,16 +155,35 @@ const logistic = (x: number) => {
 };
 
 /**
+ * the point of this function is to normalize the
+ * probability density function so that it always produces a
+ * value in the range [0, 1)
+ */
+const normalizePdf =
+  <T extends unknown>(f: (x: T) => number) =>
+  (x: T): number => {
+    const y = f(x);
+
+    if (y < 0 || 1 <= y) {
+      return normalizePdf(f)(x);
+    }
+
+    return y;
+  };
+
+/**
  * Box-Muller transformation
  */
-const normalRandom = (mean: number, stdDev: number) => {
-  const u1 = Math.random();
-  const u2 = Math.random();
+const normalRandom = normalizePdf<{ mean: number; stdDev: number }>(
+  ({ mean, stdDev }) => {
+    const u1 = Math.random();
+    const u2 = Math.random();
 
-  const z1 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    const z1 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
 
-  return z1 * stdDev + mean;
-};
+    return z1 * stdDev + mean;
+  }
+);
 
 const memoize = <T extends unknown>(
   hash: (x: T) => string,
@@ -192,7 +211,7 @@ const celebration_delay = memoize<Coordinate>(
   ({ i, j }) => `${i}:${j}`,
   ({ i, j }) => {
     let z = (i - j + boardSize - 1) / boardSize;
-    return logistic(z) + normalRandom(0.5, 0.2);
+    return logistic(z) + normalRandom({ mean: 0.5, stdDev: 0.2 });
   }
 );
 

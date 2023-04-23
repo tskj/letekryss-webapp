@@ -391,7 +391,7 @@ export const App = () => {
           }
         }
       });
-  }, [brett, date, selections, userId, isDone]);
+  }, [brett, date, selections, userId, isDone, setIsDone]);
 
   const rerender = useRerender();
   useEffect(() => {

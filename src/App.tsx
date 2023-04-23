@@ -296,6 +296,11 @@ export const App = () => {
 
     const key_a = s_key(selection_a);
 
+    const h = selection_a[1].j - selection_a[0].j;
+    const w = selection_a[1].i - selection_a[0].i;
+    const isSecondDiagonal =
+      Math.sign(h) !== Math.sign(w) && h !== 0 && w !== 0;
+
     for (const selection_b of selections) {
       const key_b = s_key(selection_b);
 
@@ -328,8 +333,11 @@ export const App = () => {
         ...selection_b.map((s) => s.j)
       );
 
-      const continuousStart = { i: min_i, j: min_j };
-      const continuousEnd = { i: max_i, j: max_j };
+      const continuousStart = {
+        i: min_i,
+        j: !isSecondDiagonal ? min_j : max_j,
+      };
+      const continuousEnd = { i: max_i, j: !isSecondDiagonal ? max_j : min_j };
 
       const continuousLine = all_coordinates([
         continuousStart,

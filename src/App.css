@@ -205,7 +205,7 @@
   background-color: black;
   opacity: 0;
 
-  animation: fadein-backdrop 0.4s ease forwards;
+  animation: fadein-backdrop 0.5s ease forwards;
   animation-delay: 3s;
 
   z-index: 4;
@@ -240,6 +240,11 @@
   position: relative;
   top: -50px;
 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+
   padding: 10px;
   border-radius: 50px;
   border: 1px  #383c44 solid;
@@ -253,21 +258,54 @@
   color: white;
   opacity: 0;
 
+  /*
   transform-origin: 0 -50% 0px;
   animation: rotateX 0.4s ease forwards;
   animation-delay: 3s;
+  */
 }
 
-@keyframes rotateX {
+.modal-actual {
+  animation: fadein-modal 0.4s linear forwards;
+  animation-delay: 3s;
+}
+
+@keyframes fadein-modal {
   from {
+    transform: initial;
     opacity: 0;
-    transform: rotateX(-5deg) translateY(5%);
+    clip-path: polygon(0 100%, 0 100%, 0 100%, 0 100%, 0 100%);
   }
   50% {
     opacity: 1;
+    clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 0, 0 0);
   }
   to {
+    transform: initial;
     opacity: 1;
-    transform: rotateX(0) translateY(0);
+    clip-path: polygon(0 100%, 100% 100%, 100% 0, 100% 0, 0 0);
   }
+}
+
+@keyframes translateZ {
+  from {
+    opacity: 0;
+    transform: rotateX(-20deg) rotateY(-20deg) translateZ(100px);
+    clip-path: polygon(0 100%, 100% 100%, 100% 0, 0 0, 0 100%);
+  }
+  50% {
+    opacity: 0.5;
+    clip-path: polygon(100% 100%, 100% 100%, 100% 0, 0 0, 0 0);
+  }
+  to {
+    opacity: 0.5;
+    transform: rotateX(-20deg) rotateY(-20deg) translateZ(-0px) translateX(-4%) translateY(2%);
+    clip-path: polygon(100% 0, 100% 0, 100% 0, 100% 0, 100% 0);
+  }
+}
+
+.sticker {
+  opacity: 0;
+  animation: translateZ 0.4s linear forwards;
+  animation-delay: 3s;
 }

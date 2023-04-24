@@ -768,7 +768,16 @@ export const App = () => {
         <>
           <div className="backdrop" />
           <div className="modal-container">
-            <div className="modal">Gratulerer!</div>
+            <div className="modal modal-actual">
+              <div>Gratulerer!</div>
+              <div>Det er bra jobba</div>
+            </div>
+          </div>
+          <div className="modal-container">
+            <div className="modal sticker">
+              <div>Gratulerer!</div>
+              <div>Det er bra jobba</div>
+            </div>
           </div>
         </>
       )}

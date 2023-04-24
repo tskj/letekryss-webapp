@@ -253,7 +253,7 @@
   color: white;
   opacity: 0;
 
-  transform-origin: 0 50% -100px;
+  transform-origin: 0 -50% 0px;
   animation: rotateX 0.4s ease forwards;
   animation-delay: 3s;
 }
@@ -261,7 +261,7 @@
 @keyframes rotateX {
   from {
     opacity: 0;
-    transform: rotateX(-20deg) translateY(10%);
+    transform: rotateX(-5deg) translateY(5%);
   }
   50% {
     opacity: 1;

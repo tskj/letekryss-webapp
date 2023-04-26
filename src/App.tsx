@@ -32,6 +32,9 @@ r.style.setProperty(
   "clamp(20px, min(calc(100vh / (var(--board-size) + 3 + 1)), calc(100vw / var(--board-size))), 50px)"
 );
 
+// used to disable mouse gestures
+let thisIsATouchDevice = false;
+
 const classnames = (
   classes: Record<string, boolean>,
   ...moreClasses: string[]
@@ -381,6 +384,28 @@ export const App = () => {
       update.current({ clientX: e.clientX, clientY: e.clientY });
     });
   }, []);
+  useEffect(() => {
+    document.addEventListener("touchstart", (e) => {
+      (mouseCoord.current as any) = {
+        clientX: e.touches[0].clientX,
+        clientY: e.touches[0].clientY,
+      };
+    });
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener("touchmove", (e) => {
+      e.preventDefault();
+      (mouseCoord.current as any) = {
+        clientX: e.touches[0].clientX,
+        clientY: e.touches[0].clientY,
+      };
+      update.current({
+        clientX: e.touches[0].clientX,
+        clientY: e.touches[0].clientY,
+      });
+    });
+  }, []);
 
   const [isDone, setIsDone] = usePersistenState(
     "has-completed:" + date,
@@ -669,6 +694,8 @@ export const App = () => {
                     "bokstav"
                   )}
                   onMouseDown={() => {
+                    if (thisIsATouchDevice) return;
+
                     if (!isSelecting) {
                       setIsSelecting(true);
                       setStart({ i, j });
@@ -677,6 +704,8 @@ export const App = () => {
                     }
                   }}
                   onMouseUp={() => {
+                    if (thisIsATouchDevice) return;
+
                     const not_on_start = i !== start.i || j !== start.j;
                     const is_on_diagonal_or_straight =
                       i === start.i ||
@@ -710,6 +739,86 @@ export const App = () => {
                       }
                     }
                   }}
+                  onTouchStart={(e) => {
+                    (mouseCoord.current as any) = {
+                      clientX: e.touches[0].clientX,
+                      clientY: e.touches[0].clientY,
+                    };
+                    // Add a class to the body with the required CSS to disable scrolling
+                    document.body.classList.add("disable-scrolling");
+                    thisIsATouchDevice = true;
+
+                    if (!isSelecting) {
+                      setIsSelecting(true);
+                      setStart({ i, j });
+                    } else if (c_eq(start, { i, j })) {
+                      setIsSelecting(false);
+                    }
+                  }}
+                  data-i={i}
+                  data-j={j}
+                  onTouchEnd={async (e) => {
+                    const touch = e.changedTouches[0];
+                    const touchX = touch.clientX;
+                    const touchY = touch.clientY;
+
+                    await new Promise((res) => setTimeout(res, 0));
+
+                    // Find the element under the user's finger when the touch ends
+                    const element = document.elementFromPoint(
+                      touchX,
+                      touchY
+                    ) as HTMLDivElement;
+
+                    const i = parseInt(
+                      element?.offsetParent?.getAttribute("data-i") ?? "-1",
+                      10
+                    );
+                    const j = parseInt(
+                      element?.offsetParent?.getAttribute("data-j") ?? "-1",
+                      10
+                    );
+                    /** ^^ above hacks needed because onTouchEnd fires on
+                     * same element as you start dragging, not where you let go */
+
+                    if (i === -1 || j === -1) {
+                      setIsSelecting(false);
+                      return;
+                    }
+
+                    const on_start = i === start.i && j === start.j;
+                    const is_on_diagonal_or_straight =
+                      i === start.i ||
+                      j === start.j ||
+                      Math.abs(i - start.i) === Math.abs(j - start.j);
+
+                    if (!is_on_diagonal_or_straight || on_start) {
+                      setIsSelecting(false);
+                      return;
+                    }
+
+                    if (isSelecting) {
+                      setIsSelecting(false);
+
+                      if (isDone) return;
+
+                      const new_selection: [Coordinate, Coordinate] = [
+                        start,
+                        { i, j },
+                      ];
+
+                      const selection_exists = selections.some(
+                        s_eq(new_selection)
+                      );
+                      if (selection_exists) {
+                        setSelections([
+                          ...selections.filter((s) => !s_eq(new_selection)(s)),
+                        ]);
+                      } else {
+                        setSelections([...selections, new_selection]);
+                      }
+                    }
+                  }}
                 >
                   <div
                     ref={(bokstavDiv) => {
@@ -719,17 +828,6 @@ export const App = () => {
                         }, r * 300 + 400 / 2);
                       }
                     }}
-                    style={
-                      inside_selections.length > 0
-                        ? {
-                            /*
-                            transitionProperty: "color",
-                            transitionDelay: `calc(${depth_in_selection} * 0.03s)`,
-                            animationDelay: `calc(${depth_in_selection} * 0.03s)`,
-                            */
-                          }
-                        : {}
-                    }
                     className={classnames({
                       selected: selected && !loading && !animationLoadingDelay,
                     })}

@@ -211,7 +211,7 @@ const celebration_delay = memoize<Coordinate>(
   ({ i, j }) => `${i}:${j}`,
   ({ i, j }) => {
     let z = (i - j + boardSize - 1) / boardSize;
-    return logistic(z) + normalRandom({ mean: 0.5, stdDev: 0.2 });
+    return 1.7 * logistic(z) + normalRandom({ mean: 0.5, stdDev: 0.4 });
   }
 );
 

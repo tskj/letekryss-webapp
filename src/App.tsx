@@ -34,6 +34,8 @@ r.style.setProperty(
 
 // used to disable mouse gestures
 let thisIsATouchDevice = false;
+// this will be set when clicking a letter
+let calculatedSize = 0;
 
 const classnames = (
   classes: Record<string, boolean>,
@@ -150,6 +152,31 @@ const usePersistenState = <T extends unknown>(
 const useRerender = () => {
   const [, setB] = useState(false);
   return useCallback(() => setB((b) => !b), []);
+};
+
+const clamp_to_axis = (dx: number, dy: number) => {
+  const centroid = (a: [number, number], b: [number, number]) =>
+    [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as const;
+  const dist = (a: readonly [number, number], b: [number, number]) =>
+    Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2);
+  const clampToAxis = [
+    [dx, 0],
+    centroid([dx, dx], [dy, dy]),
+    [0, dy],
+    centroid([dx, -dx], [-dy, dy]),
+  ] as const;
+
+  let smallestDist = Infinity;
+  let closestClamp: null | readonly [number, number] = null;
+  for (const clamp of clampToAxis) {
+    const d = dist(clamp, [dx, dy]);
+    if (d < 50 && d <= smallestDist) {
+      closestClamp = clamp;
+      smallestDist = d;
+    }
+  }
+
+  return closestClamp;
 };
 
 const logistic = (x: number) => {
@@ -375,6 +402,7 @@ export const App = () => {
   const selectionRefs = useRef<Record<string, HTMLDivElement>>({});
 
   type MousePos = { clientX: number; clientY: number };
+  const mouseCoord_start = useRef<MousePos>(null);
   const mouseCoord = useRef<MousePos>(null);
   const update = useRef<(m: MousePos) => void>(() => {});
   (update.current as any) = () => {};
@@ -503,34 +531,11 @@ export const App = () => {
             const dx = end.left - start.left;
 
             const calc = (dx: number, dy: number) => {
-              /** ==== clamp ==== */
-              const centroid = (a: [number, number], b: [number, number]) =>
-                [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as const;
-              const dist = (
-                a: readonly [number, number],
-                b: [number, number]
-              ) => Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2);
-              const clampToAxis = [
-                [dx, 0],
-                centroid([dx, dx], [dy, dy]),
-                [0, dy],
-                centroid([dx, -dx], [-dy, dy]),
-              ] as const;
-
-              let smallestDist = Infinity;
-              let closestClamp: null | readonly [number, number] = null;
-              for (const clamp of clampToAxis) {
-                const d = dist(clamp, [dx, dy]);
-                if (d < 50 && d <= smallestDist) {
-                  closestClamp = clamp;
-                  smallestDist = d;
-                }
-              }
+              const closestClamp = clamp_to_axis(dx, dy);
               if (closestClamp) {
                 dx = closestClamp[0];
                 dy = closestClamp[1];
               }
-              /** ==== clamp ==== */
 
               const length = Math.sqrt(dx ** 2 + dy ** 2);
               const orientation = Math.atan2(dy, dx) - Math.PI / 2;
@@ -598,7 +603,7 @@ export const App = () => {
                 <div
                   style={{ position: "fixed" }}
                   ref={(r) => {
-                    if (r && refs.current)
+                    if (r && selectionRefs.current)
                       selectionRefs.current[
                         s_key([selectionStart, selectionEnd])
                       ] = r;
@@ -693,8 +698,34 @@ export const App = () => {
                     },
                     "bokstav"
                   )}
-                  onMouseDown={() => {
+                  onMouseDown={(e) => {
                     if (thisIsATouchDevice) return;
+
+                    (mouseCoord.current as any) = {
+                      clientX: e.clientX,
+                      clientY: e.clientY,
+                    };
+
+                    const bounding = document
+                      .elementFromPoint(
+                        mouseCoord.current?.clientX ?? -1,
+                        mouseCoord.current?.clientY ?? -1
+                      )
+                      ?.getBoundingClientRect();
+
+                    if (bounding) {
+                      const top = bounding.top;
+                      const left = bounding.left;
+                      const width = bounding.width;
+                      const height = bounding.height;
+
+                      calculatedSize = width;
+
+                      (mouseCoord_start.current as any) = {
+                        clientX: left + width / 2,
+                        clientY: top + height / 2,
+                      };
+                    }
 
                     if (!isSelecting) {
                       setIsSelecting(true);
@@ -703,8 +734,52 @@ export const App = () => {
                       setIsSelecting(false);
                     }
                   }}
-                  onMouseUp={() => {
+                  onMouseUp={(e) => {
                     if (thisIsATouchDevice) return;
+
+                    const touch = e;
+                    let touchX = touch.clientX;
+                    let touchY = touch.clientY;
+
+                    const begin_drag = mouseCoord_start.current;
+                    if (begin_drag) {
+                      const clamp = clamp_to_axis(
+                        touchX - begin_drag.clientX,
+                        touchY - begin_drag.clientY
+                      );
+                      if (clamp) {
+                        touchX =
+                          begin_drag.clientX +
+                          Math.round(clamp[0] / calculatedSize) *
+                            calculatedSize;
+                        touchY =
+                          begin_drag.clientY +
+                          Math.round(clamp[1] / calculatedSize) *
+                            calculatedSize;
+                      }
+                    }
+
+                    const element = document.elementFromPoint(
+                      touchX,
+                      touchY
+                    ) as HTMLDivElement;
+
+                    if (element) {
+                      const str_i =
+                        element.getAttribute("data-i") ??
+                        element.offsetParent?.getAttribute("data-i") ??
+                        "-1";
+                      const n_i = parseInt(str_i, 10);
+                      const str_j =
+                        element.getAttribute("data-j") ??
+                        element.offsetParent?.getAttribute("data-j") ??
+                        "-1";
+                      const n_j = parseInt(str_j, 10);
+                      if (n_i !== -1 && n_j !== -1) {
+                        i = n_i;
+                        j = n_j;
+                      }
+                    }
 
                     const not_on_start = i !== start.i || j !== start.j;
                     const is_on_diagonal_or_straight =
@@ -744,6 +819,28 @@ export const App = () => {
                       clientX: e.touches[0].clientX,
                       clientY: e.touches[0].clientY,
                     };
+
+                    const bounding = document
+                      .elementFromPoint(
+                        mouseCoord.current?.clientX ?? -1,
+                        mouseCoord.current?.clientY ?? -1
+                      )
+                      ?.getBoundingClientRect();
+
+                    if (bounding) {
+                      const top = bounding.top;
+                      const left = bounding.left;
+                      const width = bounding.width;
+                      const height = bounding.height;
+
+                      calculatedSize = width;
+
+                      (mouseCoord_start.current as any) = {
+                        clientX: left + width / 2,
+                        clientY: top + height / 2,
+                      };
+                    }
+
                     // Add a class to the body with the required CSS to disable scrolling
                     document.body.classList.add("disable-scrolling");
                     thisIsATouchDevice = true;
@@ -759,8 +856,28 @@ export const App = () => {
                   data-j={j}
                   onTouchEnd={async (e) => {
                     const touch = e.changedTouches[0];
-                    const touchX = touch.clientX;
-                    const touchY = touch.clientY;
+                    let touchX = touch.clientX;
+                    let touchY = touch.clientY;
+
+                    const begin_drag = mouseCoord_start.current;
+                    if (begin_drag) {
+                      const clamp =
+                        mouseCoord_start.current &&
+                        clamp_to_axis(
+                          touchX - mouseCoord_start.current?.clientX,
+                          touchY - mouseCoord_start.current.clientY
+                        );
+                      if (clamp) {
+                        touchX =
+                          begin_drag.clientX +
+                          Math.round(clamp[0] / calculatedSize) *
+                            calculatedSize;
+                        touchY =
+                          begin_drag.clientY +
+                          Math.round(clamp[1] / calculatedSize) *
+                            calculatedSize;
+                      }
+                    }
 
                     await new Promise((res) => setTimeout(res, 0));
 
@@ -770,14 +887,18 @@ export const App = () => {
                       touchY
                     ) as HTMLDivElement;
 
-                    const i = parseInt(
-                      element?.offsetParent?.getAttribute("data-i") ?? "-1",
-                      10
-                    );
-                    const j = parseInt(
-                      element?.offsetParent?.getAttribute("data-j") ?? "-1",
-                      10
-                    );
+                    const str_i =
+                      element?.getAttribute("data-i") ??
+                      element?.offsetParent?.getAttribute("data-i") ??
+                      "-1";
+                    const n_i = parseInt(str_i, 10);
+                    const str_j =
+                      element?.getAttribute("data-j") ??
+                      element?.offsetParent?.getAttribute("data-j") ??
+                      "-1";
+                    const n_j = parseInt(str_j, 10);
+                    i = n_i;
+                    j = n_j;
                     /** ^^ above hacks needed because onTouchEnd fires on
                      * same element as you start dragging, not where you let go */
 

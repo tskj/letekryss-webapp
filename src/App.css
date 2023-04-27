@@ -82,7 +82,9 @@
 }
 
 .bokstav:hover {
+  /*
   font-weight: 300;
+  */
 }
 
 .loading {

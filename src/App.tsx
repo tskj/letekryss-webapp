@@ -154,6 +154,21 @@ const useRerender = () => {
   return useCallback(() => setB((b) => !b), []);
 };
 
+/**
+ * runs effect only once ever and only once bool becomes true
+ */
+const useEffectOnceWhen = (bool: boolean, cb: () => void) => {
+  const hasRun = useRef(false);
+  useEffect(() => {
+    if (bool && !hasRun.current) {
+      hasRun.current = true;
+      cb();
+    }
+  }, [bool, cb]);
+};
+
+/** =================== */
+
 const clamp_to_axis = (dx: number, dy: number) => {
   const centroid = (a: [number, number], b: [number, number]) =>
     [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as const;

@@ -78,7 +78,7 @@
   flex-direction: column;
   justify-content: center;
   transform: rotateX(0deg);
-  opacity: 1;
+  opacity: 0.3;
 }
 
 .bokstav:hover {

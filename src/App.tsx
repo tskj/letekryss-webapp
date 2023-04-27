@@ -157,6 +157,7 @@ const useRerender = () => {
 /**
  * runs effect only once ever and only once bool becomes true
  */
+/*
 const useEffectOnceWhen = (bool: boolean, cb: () => void) => {
   const hasRun = useRef(false);
   useEffect(() => {
@@ -166,6 +167,7 @@ const useEffectOnceWhen = (bool: boolean, cb: () => void) => {
     }
   }, [bool, cb]);
 };
+*/
 
 /** =================== */
 

@@ -706,25 +706,73 @@ export const App = () => {
                       clientY: e.clientY,
                     };
 
-                    const bounding = document
-                      .elementFromPoint(
-                        mouseCoord.current?.clientX ?? -1,
-                        mouseCoord.current?.clientY ?? -1
-                      )
-                      ?.getBoundingClientRect();
+                    if (isSelecting) {
+                      const touch = e;
+                      let touchX = touch.clientX;
+                      let touchY = touch.clientY;
 
-                    if (bounding) {
-                      const top = bounding.top;
-                      const left = bounding.left;
-                      const width = bounding.width;
-                      const height = bounding.height;
+                      const begin_drag = mouseCoord_start.current;
+                      if (begin_drag) {
+                        const clamp = clamp_to_axis(
+                          touchX - begin_drag.clientX,
+                          touchY - begin_drag.clientY
+                        );
+                        if (clamp) {
+                          touchX =
+                            begin_drag.clientX +
+                            Math.round(clamp[0] / calculatedSize) *
+                              calculatedSize;
+                          touchY =
+                            begin_drag.clientY +
+                            Math.round(clamp[1] / calculatedSize) *
+                              calculatedSize;
+                        }
+                      }
 
-                      calculatedSize = width;
+                      const element = document.elementFromPoint(
+                        touchX,
+                        touchY
+                      ) as HTMLDivElement;
 
-                      (mouseCoord_start.current as any) = {
-                        clientX: left + width / 2,
-                        clientY: top + height / 2,
-                      };
+                      if (element) {
+                        const str_i =
+                          element.getAttribute("data-i") ??
+                          element.offsetParent?.getAttribute("data-i") ??
+                          "-1";
+                        const n_i = parseInt(str_i, 10);
+                        const str_j =
+                          element.getAttribute("data-j") ??
+                          element.offsetParent?.getAttribute("data-j") ??
+                          "-1";
+                        const n_j = parseInt(str_j, 10);
+                        if (n_i !== -1 && n_j !== -1) {
+                          i = n_i;
+                          j = n_j;
+                        }
+                      }
+                    }
+
+                    if (!isSelecting) {
+                      const bounding = document
+                        .elementFromPoint(
+                          mouseCoord.current?.clientX ?? -1,
+                          mouseCoord.current?.clientY ?? -1
+                        )
+                        ?.getBoundingClientRect();
+
+                      if (bounding) {
+                        const top = bounding.top;
+                        const left = bounding.left;
+                        const width = bounding.width;
+                        const height = bounding.height;
+
+                        calculatedSize = width;
+
+                        (mouseCoord_start.current as any) = {
+                          clientX: left + width / 2,
+                          clientY: top + height / 2,
+                        };
+                      }
                     }
 
                     if (!isSelecting) {

@@ -29,7 +29,7 @@ r.style.setProperty(
   "--letter-size",
   // plus 3 for three letter heights for fasit (should be enough)
   // 1 for header
-  "clamp(20px, min(calc(100vh / (var(--board-size) + 3 + 1)), calc(100vw / var(--board-size))), 50px)"
+  "clamp(20px, min(calc(100vh / (var(--board-size) + 3 + 1)), calc(100vw / (var(--board-size) + 1))), 50px)"
 );
 
 // used to disable mouse gestures

@@ -60,12 +60,6 @@
   transform-style: preserve-3d;
 }
 
-@media only screen and (max-width: 767px) {
-  .grid {
-    font-weight: 300;
-  }
-}
-
 .selections {
   position: absolute;
   z-index: 0;
@@ -199,5 +193,16 @@
   to {
     opacity: 1;
     transform: rotateX(0deg);
+  }
+}
+
+@media only screen and (max-width: 767px) {
+  .grid {
+    font-weight: 100;
+    font-size: calc(var(--letter-size) / 1.5);
+  }
+  .fasit {
+    font-weight: 100;
+    font-size: calc(var(--letter-size) / 2.4);
   }
 }

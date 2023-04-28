@@ -454,6 +454,24 @@ export const App = () => {
     });
   }, []);
 
+  const [shouldShowCheckFasit, setShouldShowCheckFasit] = useState(false);
+  const [startedAt, setStartedAt] = useState<Date>(new Date());
+  useEffect(() => {
+    const now = new Date();
+    const hoursUntilSevenPm = 19 - now.getHours();
+    const ms_until_15_minutes_after_start =
+      startedAt.getTime() + 15 * 60 * 1000 - now.getTime();
+
+    const timeUntilAllowed = Math.max(
+      hoursUntilSevenPm * 60 * 60 * 1000,
+      ms_until_15_minutes_after_start
+    );
+    const timeout = setTimeout(() => {
+      setShouldShowCheckFasit(true);
+    }, timeUntilAllowed);
+    return () => clearTimeout(timeout);
+  }, [startedAt]);
+
   const [isDone, setIsDone] = usePersistenState(
     "has-completed:" + date,
     false,
@@ -483,6 +501,8 @@ export const App = () => {
       .then((x) => {
         if (fasitUnracer.current === thisRacer) {
           setFasit(x.correct);
+          if (x.startedAt) setStartedAt(new Date(x.startedAt ?? null));
+
           // TODO: send actual number from backend
           if (x.correct.length === 10) {
             if (!isDone) setIsCelebrating(true);
@@ -1130,7 +1150,8 @@ export const App = () => {
                 !isDone &&
                 !loading &&
                 !animationLoadingDelay &&
-                fasit.length > 0,
+                fasit.length > 0 &&
+                shouldShowCheckFasit,
             },
             "giveup-button"
           )}

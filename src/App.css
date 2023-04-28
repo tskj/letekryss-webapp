@@ -197,19 +197,8 @@
   }
 }
 
-@media only screen and (max-width: 767px) {
-  .grid {
-    font-weight: 100;
-    font-size: calc(var(--letter-size) / 1.5);
-  }
-  .fasit {
-    font-weight: 100;
-    font-size: calc(var(--letter-size) / 2.4);
-  }
-}
-
 .giveup-button {
-  margin-top: 200px;
+  margin-top: calc(max(10vh, 100px));
 
   font-family: 'Montserrat', sans-serif;
   font-weight: 100;
@@ -237,4 +226,19 @@
 .giveup-button.show {
   opacity: 0.6;
   transition: opacity 0.8s;
+}
+
+@media only screen and (max-width: 767px) {
+  .grid {
+    font-weight: 100;
+    font-size: calc(var(--letter-size) / 1.5);
+  }
+  .fasit {
+    font-weight: 100;
+    font-size: calc(var(--letter-size) / 2.4);
+  }
+  .giveup-button {
+
+  font-size: calc(var(--letter-size) / 2);
+  }
 }

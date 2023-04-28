@@ -160,7 +160,6 @@
 .fasit-container {
   position: relative;
   left: calc(-1 * var(--board-size) * var(--letter-size) / 2);
-  height: 0;
 }
 
 .fasit {
@@ -207,4 +206,35 @@
     font-weight: 100;
     font-size: calc(var(--letter-size) / 2.4);
   }
+}
+
+.giveup-button {
+  margin-top: 200px;
+
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 100;
+  font-size: calc(var(--letter-size) / 2.9);
+
+  cursor: pointer;
+
+  padding: 14px;
+
+  border: 0.5px solid white;
+  border-radius: 30px;
+
+  color: white;
+  background-color: transparent;
+
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.giveup-button:active {
+  opacity: 1;
+  transition: opacity 0.1s;
+}
+
+.giveup-button.show {
+  opacity: 0.6;
+  transition: opacity 0.8s;
 }

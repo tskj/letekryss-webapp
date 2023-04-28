@@ -67,7 +67,11 @@ const collect_letters = (board: string[][]) => (s: Selection) => {
   const all = all_coordinates(s);
   const letters = [];
   for (const { j, i } of all) {
-    letters.push(board[j][i]);
+    const row = board[j];
+    if (row) {
+      const letter = row[i];
+      if (letter) letters.push(letter);
+    }
   }
   return letters;
 };
@@ -157,7 +161,6 @@ const useRerender = () => {
 /**
  * runs effect only once ever and only once bool becomes true
  */
-/*
 const useEffectOnceWhen = (bool: boolean, cb: () => void) => {
   const hasRun = useRef(false);
   useEffect(() => {
@@ -167,7 +170,6 @@ const useEffectOnceWhen = (bool: boolean, cb: () => void) => {
     }
   }, [bool, cb]);
 };
-*/
 
 /** =================== */
 
@@ -524,6 +526,72 @@ export const App = () => {
     return () => window.removeEventListener("scroll", onscroll);
   });
 
+  const giveup = () => {
+    setIsDone(true);
+  };
+
+  const [givenUpWords_selections, setGivenUpWords_selections] = useState<
+    Selection[]
+  >([]);
+  const [givenUpWords, setGivenUpWords] = useState<string[]>([]);
+  useEffectOnceWhen(
+    !loading && isDone && !isCelebrating && fasit.length > 0,
+    async () => {
+      const d = await fetch(
+        `https://letekryss-api.tskj.io/solution?userId=${userId}`
+      )
+        .then((x) => x.json())
+        .then(array(string));
+
+      const givenUpWords = d.filter((x) => !fasit.includes(x));
+      setGivenUpWords(givenUpWords);
+
+      const givenUpWords_both = givenUpWords.concat(
+        givenUpWords.map((s) => s.split("").reverse().join(""))
+      );
+
+      const selections: Selection[] = [];
+
+      Array.from({ length: boardSize })
+        .map((_, j) => j)
+        .forEach((j) => {
+          Array.from({ length: boardSize })
+            .map((_, i) => i)
+            .forEach((i) => {
+              Array.from({ length: boardSize - 1 })
+                .map((_, k) => k + 1)
+                .forEach((k) => {
+                  const rowSelection: Selection = [
+                    { i, j },
+                    { i: i + k, j },
+                  ];
+                  const colSelection: Selection = [
+                    { i, j },
+                    { i, j: j + k },
+                  ];
+                  const diaSelection: Selection = [
+                    { i, j },
+                    { i: i + k, j: j + k },
+                  ];
+
+                  const row = collect_letters(brett)(rowSelection);
+                  const col = collect_letters(brett)(colSelection);
+                  const dia = collect_letters(brett)(diaSelection);
+
+                  if (givenUpWords_both.includes(row.join("")))
+                    selections.push(rowSelection);
+                  if (givenUpWords_both.includes(col.join("")))
+                    selections.push(colSelection);
+                  if (givenUpWords_both.includes(dia.join("")))
+                    selections.push(diaSelection);
+                });
+            });
+        });
+
+      setGivenUpWords_selections(selections);
+    }
+  );
+
   return (
     <div className="App">
       <header className="App-header">
@@ -679,10 +747,15 @@ export const App = () => {
                 all_coordinates([a, b]).find((c) => c.i === i && c.j === j)
               );
 
-              const selected = inside_selections
-                .map(collect_letters(brett))
-                .flatMap((x) => [x.join(""), x.reverse().join("")])
-                .some((x) => fasit.includes(x));
+              const selected =
+                inside_selections
+                  .map(collect_letters(brett))
+                  .flatMap((x) => [x.join(""), x.reverse().join("")])
+                  .some((x) => fasit.includes(x)) ||
+                givenUpWords_selections
+                  .flatMap(all_coordinates)
+
+                  .some((x) => x.i === i && x.j === j);
 
               const r = fade_in_delay({ bokstav, i, j });
               const r_c = celebration_delay({ i, j });
@@ -1037,8 +1110,34 @@ export const App = () => {
                 {f}
               </div>
             ))}
+            {givenUpWords.map((g, i) => (
+              <div
+                key={g}
+                style={{
+                  color: "red",
+                  animationDelay: `calc(${i + fasit.length} * 0.3s)`,
+                }}
+              >
+                {g}
+              </div>
+            ))}
           </div>
         </div>
+        <button
+          className={classnames(
+            {
+              show:
+                !isDone &&
+                !loading &&
+                !animationLoadingDelay &&
+                fasit.length > 0,
+            },
+            "giveup-button"
+          )}
+          onClick={giveup}
+        >
+          SJEKK FASIT
+        </button>
       </header>
     </div>
   );

@@ -593,10 +593,15 @@ export const App = () => {
                     { i, j },
                     { i: i + k, j: j + k },
                   ];
+                  const dia2Selection: Selection = [
+                    { i, j },
+                    { i: i - k, j: j + k },
+                  ];
 
                   const row = collect_letters(brett)(rowSelection);
                   const col = collect_letters(brett)(colSelection);
                   const dia = collect_letters(brett)(diaSelection);
+                  const dia2 = collect_letters(brett)(dia2Selection);
 
                   if (givenUpWords_both.includes(row.join("")))
                     selections.push(rowSelection);
@@ -604,6 +609,8 @@ export const App = () => {
                     selections.push(colSelection);
                   if (givenUpWords_both.includes(dia.join("")))
                     selections.push(diaSelection);
+                  if (givenUpWords_both.includes(dia2.join("")))
+                    selections.push(dia2Selection);
                 });
             });
         });

@@ -619,6 +619,73 @@ export const App = () => {
     }
   );
 
+  /**
+   * this business is used to animate _all_ the letters when they're
+   * flipping, to hopefully make the letters switch from waiting
+   * to the correct letter at the right time
+   */
+
+  const flipLetterRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const flipLetterLetter = useRef<Map<string, string>>(new Map());
+  const flipLetters = useRef<Map<string, () => void>>(new Map());
+  const flippedLetters = useRef<Set<string>>(new Set());
+  const flipTime = useRef<Map<string, number>>(new Map());
+
+  useEffectOnceWhen(!loading, () => {
+    function getRotateX(element: HTMLDivElement) {
+      const computedStyle = window.getComputedStyle(element);
+      const transform = computedStyle.transform;
+
+      // Get the transformation matrix from the transform property
+      const matrix3d = transform.match(/matrix3d\((.+)\)/);
+
+      if (matrix3d) {
+        const values = matrix3d[1].split(",").map(parseFloat);
+
+        // Extract rotation matrix components
+        const r22 = values[5];
+        const r23 = values[6];
+
+        // Calculate the rotateX angle in degrees
+        const angle = Math.atan2(-r23, r22) * (180 / Math.PI);
+        return angle;
+      }
+
+      return 0; // Default value if no rotation is applied
+    }
+
+    let timerStart: number | null = null;
+    const f = (t: number) => {
+      if (!timerStart) {
+        timerStart = t;
+      }
+
+      if (!flipLetters.current) return;
+      if (!flippedLetters.current) return;
+      if (!flipTime.current) return;
+
+      console.log(
+        getRotateX(flipLetterRefs.current.get(c_key({ i: 0, j: 0 }))!)
+      );
+
+      const elapsedTime = t - timerStart;
+      for (const [key, timer] of flipTime.current.entries()) {
+        const ref = flipLetterRefs.current.get(key);
+        if (!ref) continue;
+        if (!flippedLetters.current.has(key) && getRotateX(ref) < 0) {
+          flippedLetters.current.add(key);
+
+          ref.innerText = flipLetterLetter.current.get(key) ?? "";
+        }
+      }
+
+      if (flippedLetters.current.size === boardSize * boardSize) return;
+
+      requestAnimationFrame(f);
+    };
+    requestAnimationFrame(f);
+  });
+
   return (
     <div className="App">
       <header className="App-header">
@@ -790,8 +857,11 @@ export const App = () => {
               return (
                 <div
                   ref={(ref) => {
-                    if (ref && refs.current)
-                      refs.current[c_key({ i, j })] = ref;
+                    if (ref && refs.current) {
+                      const key = c_key({ i, j });
+                      refs.current[key] = ref;
+                      flipLetterRefs.current.set(key, ref);
+                    }
                   }}
                   key={c_key({ i, j })}
                   style={
@@ -799,7 +869,7 @@ export const App = () => {
                       ? {}
                       : !isCelebrating
                       ? {
-                          animation: "spin 0.4s linear forwards",
+                          animation: "flip-out 4s linear forwards",
                           animationDelay: `${0.3 * r}s`,
                         }
                       : {
@@ -1108,10 +1178,14 @@ export const App = () => {
                 >
                   <div
                     ref={(bokstavDiv) => {
-                      if (!loading) {
-                        setTimeout(() => {
-                          if (bokstavDiv) bokstavDiv.innerText = bokstav;
-                        }, r * 300 + 400 / 2);
+                      if (bokstavDiv) {
+                        const k = c_key({ i, j });
+                        const t = r * 300 + 400 / 2;
+                        flipTime.current.set(k, t);
+                        flipLetters.current.set(k, () => {
+                          bokstavDiv.innerText = bokstav;
+                        });
+                        flipLetterLetter.current.set(k, bokstav);
                       }
                     }}
                     className={classnames({

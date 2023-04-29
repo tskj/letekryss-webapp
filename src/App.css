@@ -101,15 +101,20 @@
   opacity: 1;
 }
 
-@keyframes spin {
+@keyframes flip-out {
   from {
     opacity: 0.3;
     transform: rotateX(0deg);
   }
-  49.99% {
-    transform: rotateX(-89deg);
+  to {
+    opacity: 0.65;
+    transform: rotateX(-90deg);
   }
-  50% {
+}
+
+@keyframes flip-in {
+  from {
+    opacity: 0.65;
     transform: rotateX(90deg)
   }
   to {
@@ -238,7 +243,6 @@
     font-size: calc(var(--letter-size) / 2.4);
   }
   .giveup-button {
-
-  font-size: calc(var(--letter-size) / 2);
+    font-size: calc(var(--letter-size) / 2);
   }
 }

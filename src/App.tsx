@@ -647,34 +647,43 @@ export const App = () => {
         const r23 = values[6];
 
         // Calculate the rotateX angle in degrees
-        const angle = Math.atan2(-r23, r22) * (180 / Math.PI);
-        return angle;
+        const angle = Math.atan2(-r23, r22);
+        return -angle;
       }
 
       return 0; // Default value if no rotation is applied
     }
 
-    let timerStart: number | null = null;
-    const f = (t: number) => {
-      if (!timerStart) {
-        timerStart = t;
+    const fix_branch = (r: number) => {
+      if (r <= 0) {
+        return r + 2 * Math.PI;
       }
+      return r;
+    };
 
+    const f = () => {
       if (!flipLetters.current) return;
       if (!flippedLetters.current) return;
       if (!flipTime.current) return;
 
-      console.log(
-        getRotateX(flipLetterRefs.current.get(c_key({ i: 0, j: 0 }))!)
-      );
-
-      const elapsedTime = t - timerStart;
-      for (const [key, timer] of flipTime.current.entries()) {
-        const ref = flipLetterRefs.current.get(key);
+      let middleOfCamera = null;
+      for (const [key, ref] of flipLetterRefs.current.entries()) {
         if (!ref) continue;
-        if (!flippedLetters.current.has(key) && getRotateX(ref) < 0) {
-          flippedLetters.current.add(key);
+        if (flippedLetters.current.has(key)) continue;
 
+        if (middleOfCamera === null) {
+          const b = ref.parentElement?.getBoundingClientRect();
+          middleOfCamera = (b?.top ?? 0) + (b?.height ?? 0) / 2;
+        }
+
+        const b = ref.getBoundingClientRect();
+        const rotationAxis = b.top + b.height / 2;
+
+        const rads = Math.atan(800 / (middleOfCamera - rotationAxis));
+        const actualRads = getRotateX(ref);
+
+        if (fix_branch(actualRads) < fix_branch(rads)) {
+          flippedLetters.current.add(key);
           ref.innerText = flipLetterLetter.current.get(key) ?? "";
         }
       }
@@ -869,7 +878,7 @@ export const App = () => {
                       ? {}
                       : !isCelebrating
                       ? {
-                          animation: "flip-out 4s linear forwards",
+                          animation: "flip 4s linear forwards",
                           animationDelay: `${0.3 * r}s`,
                         }
                       : {

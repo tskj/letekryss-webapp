@@ -77,7 +77,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  transform: rotateX(0deg);
+  transform: rotateX(180deg);
   opacity: 0.3;
 }
 
@@ -89,12 +89,10 @@
 
 .loading {
   opacity: 0.3;
-  transform: rotateX(0deg);
 }
 
 .loaded {
   opacity: 0.3;
-  transform: rotateX(0deg);
 }
 
 .celebrating {
@@ -104,18 +102,16 @@
 @keyframes flip {
   from {
     opacity: 0.3;
-    transform: rotateX(360deg);
-  }
-  49.999% {
-    transform: rotateX(270deg);
-  }
-  50% {
-    transform: rotateX(90deg);
+    transform: rotateX(180deg);
   }
   to {
     opacity: 1;
     transform: rotateX(0deg);
   }
+}
+
+.inner-bokstav {
+  transform: rotateX(180deg);
 }
 
 @keyframes celebration {

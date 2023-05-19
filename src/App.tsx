@@ -627,10 +627,7 @@ export const App = () => {
 
   const flipLetterRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const flipLetterLetter = useRef<Map<string, string>>(new Map());
-  const flipLetters = useRef<Map<string, () => void>>(new Map());
   const flippedLetters = useRef<Set<string>>(new Set());
-  const flipTime = useRef<Map<string, number>>(new Map());
-  const upsideDownLetters = useRef<Set<string>>(new Set());
 
   useEffectOnceWhen(!loading, () => {
     function getRotateX(element: HTMLDivElement) {
@@ -655,38 +652,13 @@ export const App = () => {
       return 0; // Default value if no rotation is applied
     }
 
-    const fix_branch = (r: number) => {
-      if (r <= 0) {
-        return r + 2 * Math.PI;
-      }
-      return r;
-    };
-
-    /**
-     * x is between a and b, but a and b can be any order
-     */
-    const is_between = (x: number, { a, b }: { a: number; b: number }) => {
-      if (b < a) {
-        const tmp = a;
-        a = b;
-        b = tmp;
-      }
-      return a <= x && x <= b;
-    };
-
     const f = () => {
-      if (!flipLetters.current) return;
       if (!flippedLetters.current) return;
-      if (!flipTime.current) return;
 
       let middleOfCamera = null;
       for (const [key, ref] of flipLetterRefs.current.entries()) {
         if (!ref) continue;
-        if (
-          flippedLetters.current.has(key) &&
-          !upsideDownLetters.current.has(key)
-        )
-          continue;
+        if (flippedLetters.current.has(key)) continue;
 
         if (middleOfCamera === null) {
           const b = ref.parentElement?.getBoundingClientRect();
@@ -696,44 +668,22 @@ export const App = () => {
         const b = ref.getBoundingClientRect();
         const rotationAxis = b.top + b.height / 2;
 
-        const rads = Math.atan(800 / (middleOfCamera - rotationAxis));
+        const theta = Math.atan((middleOfCamera - rotationAxis) / 800);
+        const alpha = Math.PI / 2 - theta;
+
         const actualRads = getRotateX(ref);
 
-        if (
-          !upsideDownLetters.current.has(key) &&
-          is_between(fix_branch(actualRads), {
-            a: Math.PI / 2,
-            b: fix_branch(rads),
-          })
-        ) {
-          upsideDownLetters.current.add(key);
-          const child = ref.firstChild;
-          if (child) (child as any).style = "transform: scaleY(-1);";
-        } else if (
-          upsideDownLetters.current.has(key) &&
-          !is_between(fix_branch(actualRads), {
-            a: Math.PI / 2,
-            b: fix_branch(rads),
-          })
-        ) {
-          upsideDownLetters.current.delete(key);
-          const child = ref.firstChild;
-          if (child) (child as any).style = "transform: scaleY(1);";
-        }
-
-        if (fix_branch(actualRads) < fix_branch(rads)) {
+        if (actualRads < alpha) {
           flippedLetters.current.add(key);
           const child = ref.firstChild;
-          if (child)
+          if (child) {
             (child as any).innerText = flipLetterLetter.current.get(key) ?? "";
+            (child as any).style = "transform: initial;";
+          }
         }
       }
 
-      if (
-        flippedLetters.current.size === boardSize * boardSize &&
-        upsideDownLetters.current.size === 0
-      )
-        return;
+      if (flippedLetters.current.size === boardSize * boardSize) return;
 
       requestAnimationFrame(f);
     };
@@ -908,22 +858,24 @@ export const App = () => {
               const r = fade_in_delay({ bokstav, i, j });
               const r_c = celebration_delay({ i, j });
 
+              const k = c_key({ i, j });
+              flipLetterLetter.current.set(k, bokstav);
+
               return (
                 <div
                   ref={(ref) => {
                     if (ref && refs.current) {
-                      const key = c_key({ i, j });
-                      refs.current[key] = ref;
-                      flipLetterRefs.current.set(key, ref);
+                      refs.current[k] = ref;
+                      flipLetterRefs.current.set(k, ref);
                     }
                   }}
-                  key={c_key({ i, j })}
+                  key={k}
                   style={
                     loading
                       ? {}
                       : !isCelebrating
                       ? {
-                          animation: "flip 4s linear forwards",
+                          animation: "flip 0.4s linear forwards",
                           animationDelay: `${0.3 * r}s`,
                         }
                       : {
@@ -1231,20 +1183,13 @@ export const App = () => {
                   }}
                 >
                   <div
-                    ref={(bokstavDiv) => {
-                      if (bokstavDiv) {
-                        const k = c_key({ i, j });
-                        const t = r * 300 + 400 / 2;
-                        flipTime.current.set(k, t);
-                        flipLetters.current.set(k, () => {
-                          bokstavDiv.innerText = bokstav;
-                        });
-                        flipLetterLetter.current.set(k, bokstav);
-                      }
-                    }}
-                    className={classnames({
-                      selected: selected && !loading && !animationLoadingDelay,
-                    })}
+                    className={classnames(
+                      {
+                        selected:
+                          selected && !loading && !animationLoadingDelay,
+                      },
+                      "inner-bokstav"
+                    )}
                   >
                     {waitingLetter}
                   </div>

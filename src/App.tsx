@@ -630,6 +630,7 @@ export const App = () => {
   const flipLetters = useRef<Map<string, () => void>>(new Map());
   const flippedLetters = useRef<Set<string>>(new Set());
   const flipTime = useRef<Map<string, number>>(new Map());
+  const upsideDownLetters = useRef<Set<string>>(new Set());
 
   useEffectOnceWhen(!loading, () => {
     function getRotateX(element: HTMLDivElement) {
@@ -661,6 +662,18 @@ export const App = () => {
       return r;
     };
 
+    /**
+     * x is between a and b, but a and b can be any order
+     */
+    const is_between = (x: number, { a, b }: { a: number; b: number }) => {
+      if (b < a) {
+        const tmp = a;
+        a = b;
+        b = tmp;
+      }
+      return a <= x && x <= b;
+    };
+
     const f = () => {
       if (!flipLetters.current) return;
       if (!flippedLetters.current) return;
@@ -669,7 +682,11 @@ export const App = () => {
       let middleOfCamera = null;
       for (const [key, ref] of flipLetterRefs.current.entries()) {
         if (!ref) continue;
-        if (flippedLetters.current.has(key)) continue;
+        if (
+          flippedLetters.current.has(key) &&
+          !upsideDownLetters.current.has(key)
+        )
+          continue;
 
         if (middleOfCamera === null) {
           const b = ref.parentElement?.getBoundingClientRect();
@@ -682,13 +699,41 @@ export const App = () => {
         const rads = Math.atan(800 / (middleOfCamera - rotationAxis));
         const actualRads = getRotateX(ref);
 
+        if (
+          !upsideDownLetters.current.has(key) &&
+          is_between(fix_branch(actualRads), {
+            a: Math.PI / 2,
+            b: fix_branch(rads),
+          })
+        ) {
+          upsideDownLetters.current.add(key);
+          const child = ref.firstChild;
+          if (child) (child as any).style = "transform: scaleY(-1);";
+        } else if (
+          upsideDownLetters.current.has(key) &&
+          !is_between(fix_branch(actualRads), {
+            a: Math.PI / 2,
+            b: fix_branch(rads),
+          })
+        ) {
+          upsideDownLetters.current.delete(key);
+          const child = ref.firstChild;
+          if (child) (child as any).style = "transform: scaleY(1);";
+        }
+
         if (fix_branch(actualRads) < fix_branch(rads)) {
           flippedLetters.current.add(key);
-          ref.innerText = flipLetterLetter.current.get(key) ?? "";
+          const child = ref.firstChild;
+          if (child)
+            (child as any).innerText = flipLetterLetter.current.get(key) ?? "";
         }
       }
 
-      if (flippedLetters.current.size === boardSize * boardSize) return;
+      if (
+        flippedLetters.current.size === boardSize * boardSize &&
+        upsideDownLetters.current.size === 0
+      )
+        return;
 
       requestAnimationFrame(f);
     };

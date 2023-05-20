@@ -685,6 +685,10 @@ export const App = () => {
 
         const actualRads = getRotateX(ref);
 
+        if (c_key({ i: 0, j: 0 }) === key) {
+          console.log(actualRads, alpha);
+        }
+
         if (actualRads < alpha) {
           flippedLetters.current.add(key);
           const child = ref.firstChild;

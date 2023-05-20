@@ -126,10 +126,15 @@ const usePersistenState = <T extends unknown>(
   const [initialDefaultValue] = useState(defaultValue);
 
   const calcCurrentValue = useCallback(() => {
-    const existingEncoded = localStorage.getItem(key);
-    const existingValue =
-      existingEncoded !== null ? decoder(JSON.parse(existingEncoded)) : null;
-    return existingValue ?? initialDefaultValue;
+    try {
+      const existingEncoded = localStorage.getItem(key);
+      const existingValue =
+        existingEncoded !== null ? decoder(JSON.parse(existingEncoded)) : null;
+      return existingValue ?? initialDefaultValue;
+    } catch (e) {
+      alert(e);
+      throw e;
+    }
   }, [key, initialDefaultValue, decoder]);
 
   const [state, setState] = useState(calcCurrentValue);

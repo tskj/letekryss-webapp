@@ -664,7 +664,7 @@ export const App = () => {
       return 0; // Default value if no rotation is applied
     }
 
-    const f = () => {
+    const f = (t: any) => {
       if (!flippedLetters.current) return;
 
       let middleOfCamera = null;
@@ -686,7 +686,7 @@ export const App = () => {
         const actualRads = getRotateX(ref);
 
         if (c_key({ i: 0, j: 0 }) === key) {
-          console.log(actualRads, alpha);
+          console.log(actualRads, alpha, t);
         }
 
         if (actualRads < alpha) {

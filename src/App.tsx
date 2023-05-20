@@ -712,6 +712,8 @@ export const App = () => {
           ].map(([selectionStart, selectionEnd]) => {
             const start =
               refs.current?.[c_key(selectionStart)]?.getBoundingClientRect();
+            if (!start) return null;
+
             const radius = (start.bottom - start.top) / 2;
             const end = refs.current?.[
               c_key(selectionEnd)
@@ -719,8 +721,7 @@ export const App = () => {
               top: (mouseCoord.current?.clientY ?? 0) - radius,
               left: (mouseCoord.current?.clientX ?? 0) - radius,
             };
-
-            if (!start || !end) return null;
+            if (!end) return null;
 
             const dy = end.top - start.top;
             const dx = end.left - start.left;

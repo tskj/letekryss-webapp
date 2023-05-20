@@ -546,8 +546,15 @@ export const App = () => {
     return () => window.removeEventListener("scroll", onscroll);
   });
 
+  const [hasGivenUp, setHasGivenUp] = usePersistenState(
+    "has-given-up:" + date,
+    false,
+    boolean
+  );
+
   const giveup = () => {
     setIsDone(true);
+    setHasGivenUp(true);
   };
 
   const [givenUpWords_selections, setGivenUpWords_selections] = useState<
@@ -555,7 +562,7 @@ export const App = () => {
   >([]);
   const [givenUpWords, setGivenUpWords] = useState<string[]>([]);
   useEffectOnceWhen(
-    !loading && isDone && !isCelebrating && fasit.length > 0,
+    !loading && isDone && !isCelebrating && fasit.length > 0 && hasGivenUp,
     async () => {
       const d = await fetch(
         `https://letekryss-api.tskj.io/solution?userId=${userId}`

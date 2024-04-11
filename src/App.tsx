@@ -293,7 +293,7 @@ export const App = () => {
   const [date, setDate] = useState("");
   const [brett, setBrett] = useState([]);
   useEffect(() => {
-    fetch("https://letekryss-api.tskj.io/daily-board")
+    fetch("https://letekryss-api.azurewebsites.net/daily-board")
       .then((x) => x.json())
       .then((x) => {
         setBrett(x.board);
@@ -493,7 +493,7 @@ export const App = () => {
     fasitUnracer.current++;
     const thisRacer = fasitUnracer.current;
     fetch(
-      `https://letekryss-api.tskj.io/check-solution/${date}?userId=${userId}`,
+      `https://letekryss-api.azurewebsites.net/check-solution/${date}?userId=${userId}`,
       {
         method: "POST",
         headers: {
@@ -570,7 +570,7 @@ export const App = () => {
     !loading && isDone && !isCelebrating && fasit.length > 0 && hasGivenUp,
     async () => {
       const d = await fetch(
-        `https://letekryss-api.tskj.io/solution?userId=${userId}`
+        `https://letekryss-api.azurewebsites.net/solution?userId=${userId}`
       )
         .then((x) => x.json())
         .then(array(string));

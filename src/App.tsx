@@ -23,6 +23,8 @@ import "./App.css";
 // TODO: denne må bestemmes fra faktiske brettet eller backenden
 const boardSize = 15;
 
+const api_host_name = "letekryss-api-3-ffdwcdhnehdeabc5.norwayeast-01.azurewebsites.net";
+
 var r = document.querySelector(":root") as any;
 r.style.setProperty("--board-size", boardSize);
 r.style.setProperty(
@@ -293,7 +295,7 @@ export const App = () => {
   const [date, setDate] = useState("");
   const [brett, setBrett] = useState([]);
   useEffect(() => {
-    fetch("https://letekryss-api.azurewebsites.net/daily-board")
+    fetch(`https://${api_host_name}/daily-board`)
       .then((x) => x.json())
       .then((x) => {
         setBrett(x.board);
@@ -493,7 +495,7 @@ export const App = () => {
     fasitUnracer.current++;
     const thisRacer = fasitUnracer.current;
     fetch(
-      `https://letekryss-api.azurewebsites.net/check-solution/${date}?userId=${userId}`,
+      `https://${api_host_name}/check-solution/${date}?userId=${userId}`,
       {
         method: "POST",
         headers: {
@@ -570,7 +572,7 @@ export const App = () => {
     !loading && isDone && !isCelebrating && fasit.length > 0 && hasGivenUp,
     async () => {
       const d = await fetch(
-        `https://letekryss-api.azurewebsites.net/solution?userId=${userId}`
+        `https://${api_host_name}/solution?userId=${userId}`
       )
         .then((x) => x.json())
         .then(array(string));

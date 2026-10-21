@@ -61,9 +61,10 @@ export const Rules = ({ onClose }: { onClose: () => void }) => (
       </li>
     </ul>
     <p>
-      Når du er ferdig, kan du dele resultatet ditt uten å røpe noen ord.
-      Pilene viser hvilken vei ordene gikk, i den rekkefølgen du fant dem, og
-      fargene viser hvor lang tid du brukte på hvert ord:
+      Når du er ferdig, kan du dele resultatet ditt uten å røpe noen ord. Hver
+      pil er et ord du fant eller en bom, i den rekkefølgen det skjedde, og
+      viser hvilken vei du markerte. Under pila viser fargen hvor lang tid du
+      brukte på ordet:
     </p>
     <p className="legend">
       🟩 under 1 min &nbsp; 🟨 1–3 min &nbsp; 🟧 3–10 min &nbsp; 🟥 over 10 min

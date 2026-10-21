@@ -20,7 +20,7 @@ import {
 } from "typescript-json-decoder";
 import "./App.css";
 import { Result, Rules } from "./Modal";
-import { found_words_in_order, share_text, word_direction } from "./share";
+import { selection_direction, share_text, timeline, word_direction } from "./share";
 
 // TODO: denne må bestemmes fra faktiske brettet eller backenden
 const boardSize = 15;
@@ -617,6 +617,21 @@ export const App = () => {
     }
   }, [date, fasit, foundAt, setFoundAt]);
 
+  /**
+   * every mark the user makes, with when it was made, so the shared result
+   * can show misses in between the found words. kept even if the mark is
+   * removed again
+   */
+  const [marks, setMarks] = usePersistenState(
+    "marks:" + date,
+    [],
+    array(tuple(selectionDecoder, number))
+  );
+  const addSelection = (new_selection: Selection) => {
+    setSelections([...selections, new_selection]);
+    setMarks([...marks, [new_selection, Date.now()]]);
+  };
+
   const [showRules, setShowRules] = useState(false);
   const [hasSeenRules, setHasSeenRules] = usePersistenState(
     "has-seen-rules",
@@ -729,13 +744,27 @@ export const App = () => {
     ? Math.max(...fasit.map((w) => foundAtByWord[w] ?? -Infinity))
     : null;
 
+  /**
+   * a mark is a miss if it's not one of the words, unless it ended up
+   * inside a found word (like marking part of a word and then the rest)
+   */
+  const found_cells = selections
+    .filter(is_fasit_selection)
+    .map((s) => new Set(all_coordinates(s).map(c_key)));
+  const misses = marks
+    .filter(
+      ([s]) =>
+        !is_fasit_selection(s) &&
+        !found_cells.some((cells) =>
+          all_coordinates(s).every((c) => cells.has(c_key(c)))
+        )
+    )
+    .map(([s, at]) => ({ at, direction: selection_direction(s) }));
+
   const resultText = share_text({
     date,
-    found: found_words_in_order(
-      fasit,
-      foundAtByWord,
-      startedAt.getTime(),
-      (word) => {
+    events: timeline({
+      found: fasit.map((word) => {
         const selection = selections.find((s) => {
           const letters = letters_of(s);
           return (
@@ -743,17 +772,21 @@ export const App = () => {
             [...letters].reverse().join("") === word
           );
         });
-        return selection
-          ? word_direction(word, selection, letters_of(selection))
-          : null;
-      }
-    ),
+        return {
+          at: foundAtByWord[word],
+          direction: selection
+            ? word_direction(word, selection, letters_of(selection))
+            : null,
+        };
+      }),
+      misses,
+      startedAt: startedAt.getTime(),
+    }),
     total: numberOfFasitWords,
     totalMs:
       finishedAt !== null && Number.isFinite(finishedAt)
         ? finishedAt - startedAt.getTime()
         : null,
-    misses: selections.filter((s) => !is_fasit_selection(s)).length,
   });
 
   /**
@@ -1193,7 +1226,7 @@ export const App = () => {
                           ...selections.filter((s) => !s_eq(new_selection)(s)),
                         ]);
                       } else {
-                        setSelections([...selections, new_selection]);
+                        addSelection(new_selection);
                       }
                     }
                   }}
@@ -1319,7 +1352,7 @@ export const App = () => {
                           ...selections.filter((s) => !s_eq(new_selection)(s)),
                         ]);
                       } else {
-                        setSelections([...selections, new_selection]);
+                        addSelection(new_selection);
                       }
                     }
                   }}

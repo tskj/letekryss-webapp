@@ -19,11 +19,15 @@ import {
   tuple,
 } from "typescript-json-decoder";
 import "./App.css";
+import { Result, Rules } from "./Modal";
+import { found_words_in_order, share_text, word_direction } from "./share";
 
 // TODO: denne må bestemmes fra faktiske brettet eller backenden
 const boardSize = 15;
 
-const api_host_name = "letekryss-generator-production.up.railway.app";
+const api_url =
+  process.env.REACT_APP_API_URL ??
+  "https://letekryss-generator-production.up.railway.app";
 
 var r = document.querySelector(":root") as any;
 r.style.setProperty("--board-size", boardSize);
@@ -77,6 +81,26 @@ const collect_letters = (board: string[][]) => (s: Selection) => {
   }
   return letters;
 };
+
+/**
+ * seconds since midnight in norway, regardless of the user's timezone
+ */
+const osloSecondsSinceMidnight = (date: Date) => {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Europe/Oslo",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hourCycle: "h23",
+    })
+      .formatToParts(date)
+      .map(({ type, value }) => [type, parseInt(value, 10)])
+  );
+  return parts.hour * 60 * 60 + parts.minute * 60 + parts.second;
+};
+
+const numberOfFasitWords = 10;
 
 const alphabet = "abcdefghijklmnopqrstuvwxyzæøå".toUpperCase().split("");
 
@@ -295,7 +319,7 @@ export const App = () => {
   const [date, setDate] = useState("");
   const [brett, setBrett] = useState([]);
   useEffect(() => {
-    fetch(`https://${api_host_name}/daily-board`)
+    fetch(`${api_url}/daily-board`)
       .then((x) => x.json())
       .then((x) => {
         setBrett(x.board);
@@ -465,12 +489,13 @@ export const App = () => {
   const [startedAt, setStartedAt] = useState<Date>(new Date());
   useEffect(() => {
     const now = new Date();
-    const hoursUntilSevenPm = 19 - now.getHours();
+    const ms_until_seven_pm_in_norway =
+      (19 * 60 * 60 - osloSecondsSinceMidnight(now)) * 1000;
     const ms_until_15_minutes_after_start =
       startedAt.getTime() + 15 * 60 * 1000 - now.getTime();
 
     const timeUntilAllowed = Math.max(
-      hoursUntilSevenPm * 60 * 60 * 1000,
+      ms_until_seven_pm_in_norway,
       ms_until_15_minutes_after_start
     );
     const timeout = setTimeout(() => {
@@ -495,7 +520,7 @@ export const App = () => {
     fasitUnracer.current++;
     const thisRacer = fasitUnracer.current;
     fetch(
-      `https://${api_host_name}/check-solution/${date}?userId=${userId}`,
+      `${api_url}/check-solution/${date}?userId=${userId}`,
       {
         method: "POST",
         headers: {
@@ -511,7 +536,7 @@ export const App = () => {
           if (x.startedAt) setStartedAt(new Date(x.startedAt ?? null));
 
           // TODO: send actual number from backend
-          if (x.correct.length === 10) {
+          if (x.correct.length === numberOfFasitWords) {
             if (!isDone) setIsCelebrating(true);
             setIsDone(true);
           }
@@ -559,10 +584,53 @@ export const App = () => {
     boolean
   );
 
+  const [givenUpAt, setGivenUpAt] = usePersistenState(
+    "given-up-at:" + date,
+    0,
+    number
+  );
+  const [justGaveUp, setJustGaveUp] = useState(false);
+
   const giveup = () => {
     setIsDone(true);
     setHasGivenUp(true);
+    setGivenUpAt(Date.now());
+    setJustGaveUp(true);
   };
+
+  /**
+   * when each word was found, so the shared result can show the order
+   * and how long each one took
+   */
+  const [foundAt, setFoundAt] = usePersistenState(
+    "found-at:" + date,
+    [],
+    array(tuple(string, number))
+  );
+  useEffect(() => {
+    if (date === "") return;
+    const known = new Set(foundAt.map(([word]) => word));
+    const newly_found = fasit.filter((word) => !known.has(word));
+    if (newly_found.length > 0) {
+      const now = Date.now();
+      setFoundAt([...foundAt, ...newly_found.map((w) => [w, now] as [string, number])]);
+    }
+  }, [date, fasit, foundAt, setFoundAt]);
+
+  const [showRules, setShowRules] = useState(false);
+  const [hasSeenRules, setHasSeenRules] = usePersistenState(
+    "has-seen-rules",
+    false,
+    boolean
+  );
+  useEffectOnceWhen(!hasSeenRules, () => setShowRules(true));
+  const closeRules = useCallback(() => {
+    setShowRules(false);
+    setHasSeenRules(true);
+  }, [setHasSeenRules]);
+
+  const [showResult, setShowResult] = useState(false);
+  const closeResult = useCallback(() => setShowResult(false), []);
 
   const [givenUpWords_selections, setGivenUpWords_selections] = useState<
     Selection[]
@@ -572,7 +640,7 @@ export const App = () => {
     !loading && isDone && !isCelebrating && fasit.length > 0 && hasGivenUp,
     async () => {
       const d = await fetch(
-        `https://${api_host_name}/solution?userId=${userId}`
+        `${api_url}/solution?userId=${userId}`
       )
         .then((x) => x.json())
         .then(array(string));
@@ -632,6 +700,61 @@ export const App = () => {
       setGivenUpWords_selections(selections);
     }
   );
+
+  useEffect(() => {
+    if (!isCelebrating) return;
+    const timeout = setTimeout(() => setShowResult(true), 4000);
+    return () => clearTimeout(timeout);
+  }, [isCelebrating]);
+
+  useEffect(() => {
+    if (!justGaveUp || givenUpWords.length === 0) return;
+    const timeout = setTimeout(() => setShowResult(true), 2500);
+    return () => clearTimeout(timeout);
+  }, [justGaveUp, givenUpWords]);
+
+  const letters_of = collect_letters(brett);
+  const is_fasit_selection = (s: Selection) => {
+    const letters = letters_of(s);
+    return (
+      fasit.includes(letters.join("")) ||
+      fasit.includes([...letters].reverse().join(""))
+    );
+  };
+
+  const foundAtByWord = Object.fromEntries(foundAt);
+  const finishedAt = hasGivenUp
+    ? givenUpAt || null
+    : fasit.length === numberOfFasitWords
+    ? Math.max(...fasit.map((w) => foundAtByWord[w] ?? -Infinity))
+    : null;
+
+  const resultText = share_text({
+    date,
+    found: found_words_in_order(
+      fasit,
+      foundAtByWord,
+      startedAt.getTime(),
+      (word) => {
+        const selection = selections.find((s) => {
+          const letters = letters_of(s);
+          return (
+            letters.join("") === word ||
+            [...letters].reverse().join("") === word
+          );
+        });
+        return selection
+          ? word_direction(word, selection, letters_of(selection))
+          : null;
+      }
+    ),
+    total: numberOfFasitWords,
+    totalMs:
+      finishedAt !== null && Number.isFinite(finishedAt)
+        ? finishedAt - startedAt.getTime()
+        : null,
+    misses: selections.filter((s) => !is_fasit_selection(s)).length,
+  });
 
   /**
    * this business is used to animate _all_ the letters when they're
@@ -1242,23 +1365,50 @@ export const App = () => {
             ))}
           </div>
         </div>
-        <button
-          className={classnames(
-            {
-              show:
-                !isDone &&
-                !loading &&
-                !animationLoadingDelay &&
-                fasit.length > 0 &&
-                shouldShowCheckFasit,
-            },
-            "giveup-button"
-          )}
-          onClick={giveup}
-        >
-          SJEKK FASIT
-        </button>
+        {!isDone ? (
+          <button
+            className={classnames(
+              {
+                show:
+                  !loading &&
+                  !animationLoadingDelay &&
+                  fasit.length > 0 &&
+                  shouldShowCheckFasit,
+              },
+              "giveup-button"
+            )}
+            onClick={giveup}
+          >
+            SJEKK FASIT
+          </button>
+        ) : (
+          <button
+            className={classnames(
+              { show: !loading && !animationLoadingDelay },
+              "giveup-button"
+            )}
+            onClick={() => setShowResult(true)}
+          >
+            DEL RESULTAT
+          </button>
+        )}
       </header>
+      <button
+        className="rules-button"
+        onClick={() => setShowRules(true)}
+        aria-label="Slik spiller du"
+      >
+        ?
+      </button>
+      {showRules && <Rules onClose={closeRules} />}
+      {showResult && !showRules && (
+        <Result
+          onClose={closeResult}
+          foundCount={fasit.length}
+          total={numberOfFasitWords}
+          text={resultText}
+        />
+      )}
     </div>
   );
 };

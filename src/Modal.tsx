@@ -67,7 +67,7 @@ export const Rules = ({ onClose }: { onClose: () => void }) => (
     </p>
     <p className="legend">
       🟩 under 1 min &nbsp; 🟨 1–3 min &nbsp; 🟧 3–10 min &nbsp; 🟥 over 10 min
-      &nbsp; ⬛ ikke funnet
+      &nbsp; ⬛ ikke funnet &nbsp; 💥 bom
     </p>
     <button className="modal-button" onClick={onClose}>
       SPILL

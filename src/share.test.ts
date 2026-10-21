@@ -54,8 +54,19 @@ test("share text has a direction row and a tempo row of the same length", () => 
       "➡️⬇️↙️↖️↗️❌❌",
       "🟩🟨🟧🟥⬜⬛⬛",
       "",
-      "⏱ 1 t 23 min · 🎯 3 bom",
+      "⏱ 1 t 23 min · 💥💥💥",
       "letekryss.no",
     ].join("\n")
   );
+});
+
+test("misses are shown as one emoji each, up to a point", () => {
+  const stats = (misses: number) =>
+    share_text({ date: "2026-10-21", found: [], total: 10, totalMs: null, misses })
+      .split("\n")
+      .at(-2);
+  expect(stats(0)).toBe("🎯 feilfritt");
+  expect(stats(2)).toBe("💥💥");
+  expect(stats(10)).toBe("💥".repeat(10));
+  expect(stats(14)).toBe("💥×14");
 });

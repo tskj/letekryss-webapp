@@ -29,6 +29,15 @@ const tempo_square = (durationMs: number | null) => {
   return "🟥";
 };
 
+/**
+ * one 💥 per miss, but not an endless line of them
+ */
+const misses_emoji = (misses: number) => {
+  if (misses === 0) return "🎯 feilfritt";
+  if (misses <= 10) return "💥".repeat(misses);
+  return `💥×${misses}`;
+};
+
 const format_duration = (ms: number) => {
   const total_minutes = Math.max(1, Math.round(ms / minute));
   const hours = Math.floor(total_minutes / 60);
@@ -106,7 +115,7 @@ export const share_text = ({
 
   const stats = [
     totalMs !== null ? `⏱ ${format_duration(totalMs)}` : null,
-    `🎯 ${misses} bom`,
+    misses_emoji(misses),
   ]
     .filter((x) => x !== null)
     .join(" · ");

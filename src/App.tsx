@@ -23,7 +23,7 @@ import "./App.css";
 // TODO: denne må bestemmes fra faktiske brettet eller backenden
 const boardSize = 15;
 
-const api_host_name = "letekryss-api-3-ffdwcdhnehdeabc5.norwayeast-01.azurewebsites.net";
+const api_host_name = "letekryss-generator-production.up.railway.app";
 
 var r = document.querySelector(":root") as any;
 r.style.setProperty("--board-size", boardSize);

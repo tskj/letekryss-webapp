@@ -118,9 +118,12 @@ export const Rules = ({ onClose }: { onClose: () => void }) => (
   </Modal>
 );
 
+// phones get the share sheet, everything else copies to the clipboard
+const opens_share_sheet = () =>
+  /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && !!navigator.share;
+
 const share_or_copy = async (text: string): Promise<"shared" | "copied"> => {
-  const is_mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  if (is_mobile && navigator.share) {
+  if (opens_share_sheet()) {
     try {
       await navigator.share({ text });
       return "shared";
@@ -154,8 +157,8 @@ export const Result = ({
         {inProgress
           ? "Så langt"
           : foundCount === total
-          ? "Gratulerer!"
-          : "Bra forsøk!"}
+            ? "Gratulerer!"
+            : "Bra forsøk!"}
       </h2>
       {inProgress ? (
         <p>
@@ -177,6 +180,13 @@ export const Result = ({
           )
         }
       >
+        {status === "copied" ? (
+          <CheckIcon />
+        ) : opens_share_sheet() ? (
+          <ShareIcon />
+        ) : (
+          <CopyIcon />
+        )}
         {status === "copied" ? "KOPIERT!" : "DEL RESULTAT"}
       </button>
       {status === "failed" && (
@@ -187,3 +197,36 @@ export const Result = ({
     </Modal>
   );
 };
+
+const icon_props = {
+  width: 18,
+  height: 18,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.5,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+  "aria-hidden": true,
+};
+
+const CopyIcon = () => (
+  <svg {...icon_props}>
+    <rect x="9" y="9" width="12" height="12" rx="2" />
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+  </svg>
+);
+
+const ShareIcon = () => (
+  <svg {...icon_props}>
+    <path d="M12 3v12" />
+    <path d="M8 7l4-4 4 4" />
+    <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" />
+  </svg>
+);
+
+const CheckIcon = () => (
+  <svg {...icon_props}>
+    <path d="M5 12l5 5L20 7" />
+  </svg>
+);

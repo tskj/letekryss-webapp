@@ -6,7 +6,8 @@
   --border: #22494b;
   --backdrop: rgba(4, 16, 17, 0.6);
   --text: #e6f0ec;
-  --found: #f0c674;
+  --button-border: rgba(230, 240, 236, 0.55);
+  --found: #ffd479;
 }
 
 .disable-scrolling {
@@ -78,7 +79,9 @@
 
 .selected {
   color: var(--found);
-  transition: color 0.8s ease;
+  font-weight: 300;
+  text-shadow: 0 0 14px rgba(255, 212, 121, 0.35);
+  transition: color 0.8s ease, text-shadow 0.8s ease, font-weight 0.8s ease;
 }
 
 .bokstav {
@@ -203,21 +206,21 @@
   margin-top: calc(max(10vh, 100px));
 
   font-family: 'Montserrat', sans-serif;
-  font-weight: 100;
+  font-weight: 300;
   font-size: calc(var(--letter-size) / 2.9);
+  letter-spacing: 0.06em;
 
   cursor: pointer;
 
-  padding: 14px;
+  padding: 14px 24px;
 
-  border: 0.5px solid var(--text);
+  border: 1px solid var(--button-border);
   border-radius: 30px;
 
   color: var(--text);
   background-color: transparent;
 
-  opacity: 0.6;
-  transition: opacity 0.2s;
+  transition: background-color 0.2s;
   animation: giveup-button-in 0.8s ease both;
 }
 
@@ -239,9 +242,9 @@
   margin-top: 0;
 }
 
+.giveup-button:hover,
 .giveup-button:active {
-  opacity: 1;
-  transition: opacity 0.1s;
+  background-color: rgba(255, 255, 255, 0.07);
 }
 
 
@@ -453,17 +456,21 @@
 }
 
 .modal-button {
-  display: block;
   margin: 20px auto 0;
   padding: 12px 28px;
 
   font-family: 'Montserrat', sans-serif;
-  font-weight: 200;
+  font-weight: 300;
   font-size: 16px;
   letter-spacing: 0.05em;
 
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+
   cursor: pointer;
-  border: 0.5px solid var(--text);
+  border: 1px solid var(--button-border);
   border-radius: 30px;
   color: var(--text);
   background-color: transparent;

@@ -777,7 +777,10 @@ export const App = () => {
     totalMs:
       finishedAt !== null && Number.isFinite(finishedAt)
         ? finishedAt - startedAt.getTime()
+        : !isDone
+        ? Date.now() - startedAt.getTime()
         : null,
+    inProgress: !isDone,
   });
 
   /**
@@ -1389,32 +1392,24 @@ export const App = () => {
             ))}
           </div>
         </div>
-        {!isDone ? (
-          <button
-            className={classnames(
-              {
-                show:
-                  !loading &&
-                  !animationLoadingDelay &&
-                  fasit.length > 0 &&
-                  shouldShowCheckFasit,
-              },
-              "giveup-button"
+        {!loading && !animationLoadingDelay && (
+          <div className="bottom-buttons">
+            {/* sharing doesn't end the game: you can share what you have
+                so far and keep looking */}
+            {(isDone || fasit.length > 0) && (
+              <button
+                className="giveup-button"
+                onClick={() => setShowResult(true)}
+              >
+                DEL RESULTAT
+              </button>
             )}
-            onClick={giveup}
-          >
-            SJEKK FASIT
-          </button>
-        ) : (
-          <button
-            className={classnames(
-              { show: !loading && !animationLoadingDelay },
-              "giveup-button"
+            {!isDone && fasit.length > 0 && shouldShowCheckFasit && (
+              <button className="giveup-button" onClick={giveup}>
+                SJEKK FASIT
+              </button>
             )}
-            onClick={() => setShowResult(true)}
-          >
-            DEL RESULTAT
-          </button>
+          </div>
         )}
       </header>
       <button
@@ -1430,6 +1425,7 @@ export const App = () => {
           onClose={closeResult}
           foundCount={fasit.length}
           total={numberOfFasitWords}
+          inProgress={!isDone}
           text={resultText}
         />
       )}

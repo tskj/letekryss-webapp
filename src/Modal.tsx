@@ -138,20 +138,35 @@ export const Result = ({
   foundCount,
   total,
   text,
+  inProgress,
 }: {
   onClose: () => void;
   foundCount: number;
   total: number;
   text: string;
+  inProgress: boolean;
 }) => {
   const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
 
   return (
     <Modal onClose={onClose}>
-      <h2>{foundCount === total ? "Gratulerer!" : "Bra forsøk!"}</h2>
-      <p>
-        Du fant {foundCount} av {total} ord.
-      </p>
+      <h2>
+        {inProgress
+          ? "Så langt"
+          : foundCount === total
+          ? "Gratulerer!"
+          : "Bra forsøk!"}
+      </h2>
+      {inProgress ? (
+        <p>
+          Du har funnet {foundCount} av {total} ord. Del det du har, og let
+          videre etterpå.
+        </p>
+      ) : (
+        <p>
+          Du fant {foundCount} av {total} ord.
+        </p>
+      )}
       <pre className="share-preview">{text}</pre>
       <button
         className="modal-button"

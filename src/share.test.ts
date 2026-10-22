@@ -120,3 +120,14 @@ test("a full game with a miss or two still fits on one line", () => {
     "💥💥🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩",
   ]);
 });
+
+test("a result shared mid-game says the time is so far", () => {
+  const text = share_text({
+    date: "2026-10-21",
+    events: [{ kind: "found", direction: right, durationMs: 0 }],
+    total: 10,
+    totalMs: 12 * min,
+    inProgress: true,
+  });
+  expect(text.split("\n").at(-2)).toBe("⏱ 12 min så langt · 🎯 feilfritt");
+});

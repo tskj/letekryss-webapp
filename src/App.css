@@ -216,9 +216,27 @@
   color: var(--text);
   background-color: transparent;
 
-  opacity: 0;
-  pointer-events: none;
+  opacity: 0.6;
   transition: opacity 0.2s;
+  animation: giveup-button-in 0.8s ease both;
+}
+
+@keyframes giveup-button-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.bottom-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin-top: calc(max(10vh, 100px));
+}
+
+.bottom-buttons .giveup-button {
+  margin-top: 0;
 }
 
 .giveup-button:active {
@@ -226,11 +244,6 @@
   transition: opacity 0.1s;
 }
 
-.giveup-button.show {
-  pointer-events: auto;
-  opacity: 0.6;
-  transition: opacity 0.8s;
-}
 
 @media only screen and (max-width: 767px) {
   .grid {

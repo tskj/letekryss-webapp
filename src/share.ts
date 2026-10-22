@@ -107,12 +107,15 @@ export const share_text = ({
   events,
   total,
   totalMs,
+  inProgress = false,
 }: {
   // yyyy-mm-dd
   date: string;
   events: ShareEvent[];
   total: number;
   totalMs: number | null;
+  // shared before finishing, so the time is the time so far
+  inProgress?: boolean;
 }) => {
   const [, month, day] = date.split("-");
   const found_count = events.filter((e) => e.kind === "found").length;
@@ -143,7 +146,9 @@ export const share_text = ({
   }
 
   const stats = [
-    totalMs !== null ? `⏱ ${format_duration(totalMs)}` : null,
+    totalMs !== null
+      ? `⏱ ${format_duration(totalMs)}${inProgress ? " så langt" : ""}`
+      : null,
     miss_count === 0 ? "🎯 feilfritt" : null,
   ]
     .filter((x) => x !== null)

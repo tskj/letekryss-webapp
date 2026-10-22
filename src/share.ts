@@ -127,10 +127,12 @@ export const share_text = ({
         ? { top: arrow(e.direction), bottom: tempo_square(e.durationMs) }
         : { top: arrow(e.direction), bottom: "💥" }
     ),
-    ...Array.from({ length: Math.max(0, total - found_count) }, () => ({
-      top: "❌",
-      bottom: "⬛",
-    })),
+    // mid-game the header's count says how many are left, so only a
+    // finished game marks the words that were never found
+    ...Array.from(
+      { length: inProgress ? 0 : Math.max(0, total - found_count) },
+      () => ({ top: "❌", bottom: "⬛" })
+    ),
   ];
 
   // as few lines as fit, with the columns spread evenly across them, so a

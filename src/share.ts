@@ -156,12 +156,11 @@ export const share_text = ({
     .filter((x) => x !== null)
     .join(" · ");
 
+  // the address doubles as the title, so the share links back to the game
   return [
-    `Letekryss ${day}.${month}  ${found_count}/${total}`,
+    `https://letekryss.no ${day}.${month}  ${found_count}/${total}`,
+    ...(stats ? [stats] : []),
     "",
     ...lines,
-    "",
-    ...(stats ? [stats] : []),
-    "letekryss.no",
   ].join("\n");
 };

@@ -59,13 +59,11 @@ test("share text has arrows over tempo squares, with misses in between", () => {
 
   expect(text).toBe(
     [
-      "Letekryss 21.10  5/7",
+      "https://letekryss.no 21.10  5/7",
+      "⏱ 1 t 23 min",
       "",
       "➡️⬅️⬇️↙️↖️↗️❌❌",
       "🟩💥🟨🟧🟥⬜⬛⬛",
-      "",
-      "⏱ 1 t 23 min",
-      "letekryss.no",
     ].join("\n")
   );
 });
@@ -82,15 +80,13 @@ test("long results are split evenly into lines of at most 12, keeping the rows l
   });
 
   expect(text.split("\n")).toEqual([
-    "Letekryss 21.10  10/10",
+    "https://letekryss.no 21.10  10/10",
     "",
     "⬇️⬇️⬇️⬇️➡️➡️➡️",
     "💥💥💥💥🟩🟩🟩",
     "",
     "➡️➡️➡️➡️➡️➡️➡️",
     "🟩🟩🟩🟩🟩🟩🟩",
-    "",
-    "letekryss.no",
   ]);
 });
 
@@ -101,7 +97,7 @@ test("no misses is worth mentioning", () => {
     total: 1,
     totalMs: 3 * min,
   });
-  expect(text.split("\n").at(-2)).toBe("⏱ 3 min · 🎯 feilfritt");
+  expect(text.split("\n").at(1)).toBe("⏱ 3 min · 🎯 feilfritt");
 });
 
 test("a full game with a miss or two still fits on one line", () => {
@@ -130,13 +126,11 @@ test("a result shared mid-game shows only what happened, and the time so far", (
     inProgress: true,
   });
   expect(text.split("\n")).toEqual([
-    "Letekryss 21.10  1/10",
+    "https://letekryss.no 21.10  1/10",
+    "⏱ 12 min så langt · 🎯 feilfritt",
     "",
     // no columns for the words not found yet
     "➡️",
     "🟩",
-    "",
-    "⏱ 12 min så langt · 🎯 feilfritt",
-    "letekryss.no",
   ]);
 });

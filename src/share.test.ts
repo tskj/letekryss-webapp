@@ -70,7 +70,7 @@ test("share text has arrows over tempo squares, with misses in between", () => {
   );
 });
 
-test("long results are split evenly into lines of at most 10, keeping the rows lined up", () => {
+test("long results are split evenly into lines of at most 12, keeping the rows lined up", () => {
   const text = share_text({
     date: "2026-10-21",
     events: [
@@ -102,4 +102,21 @@ test("no misses is worth mentioning", () => {
     totalMs: 3 * min,
   });
   expect(text.split("\n").at(-2)).toBe("⏱ 3 min · 🎯 feilfritt");
+});
+
+test("a full game with a miss or two still fits on one line", () => {
+  const text = share_text({
+    date: "2026-10-21",
+    events: [
+      { kind: "miss", direction: down },
+      { kind: "miss", direction: down },
+      ...Array.from({ length: 10 }, () => ({ kind: "found" as const, direction: right, durationMs: 0 })),
+    ],
+    total: 10,
+    totalMs: null,
+  });
+  expect(text.split("\n").slice(2, 4)).toEqual([
+    "⬇️⬇️➡️➡️➡️➡️➡️➡️➡️➡️➡️➡️",
+    "💥💥🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩",
+  ]);
 });

@@ -100,7 +100,7 @@ export const timeline = ({
 };
 
 // so the two rows still line up when a chat app wraps long lines
-const COLUMNS_PER_LINE = 10;
+const COLUMNS_PER_LINE = 12;
 
 export const share_text = ({
   date,

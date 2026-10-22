@@ -633,16 +633,7 @@ export const App = () => {
   };
 
   const [showRules, setShowRules] = useState(false);
-  const [hasSeenRules, setHasSeenRules] = usePersistenState(
-    "has-seen-rules",
-    false,
-    boolean
-  );
-  useEffectOnceWhen(!hasSeenRules, () => setShowRules(true));
-  const closeRules = useCallback(() => {
-    setShowRules(false);
-    setHasSeenRules(true);
-  }, [setHasSeenRules]);
+  const closeRules = useCallback(() => setShowRules(false), []);
 
   const [showResult, setShowResult] = useState(false);
   const closeResult = useCallback(() => setShowResult(false), []);
@@ -1389,7 +1380,7 @@ export const App = () => {
               <div
                 key={g}
                 style={{
-                  color: "red",
+                  color: "var(--found)",
                   animationDelay: `calc(${i + fasit.length} * 0.3s)`,
                 }}
               >

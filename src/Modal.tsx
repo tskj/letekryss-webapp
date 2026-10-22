@@ -85,9 +85,9 @@ export const Rules = ({ onClose }: { onClose: () => void }) => (
             under brettet.
           </li>
           <li>
-            Det finnes ingen andre ord på brettet, bortsett fra kortere ord som
-            står inni de 10. Finner du UGLE uten at den lyser opp, sitter den
-            kanskje inni en FUGLEHUND.
+            Ingenting på brettet står der ved en tilfeldighet. Ser du et ord, er
+            du på sporet. Lyser ikke UGLE opp, sitter den kanskje inni en
+            FUGLEHUND.
           </li>
           <li>Det kommer et nytt brett hver dag ved midnatt.</li>
           <li>

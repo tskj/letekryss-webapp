@@ -19,7 +19,7 @@ import {
   tuple,
 } from "typescript-json-decoder";
 import "./App.css";
-import { Result, Rules } from "./Modal";
+import { Result, Rules, ShareIcon } from "./Modal";
 import { selection_direction, share_text, timeline, word_direction } from "./share";
 
 // TODO: denne må bestemmes fra faktiske brettet eller backenden
@@ -1392,26 +1392,24 @@ export const App = () => {
             ))}
           </div>
         </div>
-        {!loading && !animationLoadingDelay && (
-          <div className="bottom-buttons">
-            {/* sharing doesn't end the game: you can share what you have
-                so far and keep looking */}
-            {(isDone || fasit.length > 0) && (
-              <button
-                className="giveup-button"
-                onClick={() => setShowResult(true)}
-              >
-                DEL RESULTAT
-              </button>
-            )}
-            {!isDone && fasit.length > 0 && shouldShowCheckFasit && (
-              <button className="giveup-button" onClick={giveup}>
-                SJEKK FASIT
-              </button>
-            )}
-          </div>
-        )}
+        {!loading &&
+          !animationLoadingDelay &&
+          !isDone &&
+          fasit.length > 0 &&
+          shouldShowCheckFasit && (
+            <button className="giveup-button" onClick={giveup}>
+              SJEKK FASIT
+            </button>
+          )}
       </header>
+      {/* sharing doesn't end the game: you can share what you have so far
+          and keep looking */}
+      {!loading && !animationLoadingDelay && (isDone || fasit.length > 0) && (
+        <button className="share-button" onClick={() => setShowResult(true)}>
+          <ShareIcon />
+          DEL RESULTAT
+        </button>
+      )}
       <button
         className="rules-button"
         onClick={() => setShowRules(true)}

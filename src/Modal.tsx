@@ -217,7 +217,7 @@ const CopyIcon = () => (
   </svg>
 );
 
-const ShareIcon = () => (
+export const ShareIcon = () => (
   <svg {...icon_props}>
     <path d="M12 3v12" />
     <path d="M8 7l4-4 4 4" />

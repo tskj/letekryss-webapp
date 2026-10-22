@@ -230,18 +230,6 @@
   }
 }
 
-.bottom-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 16px;
-  margin-top: calc(max(10vh, 100px));
-}
-
-.bottom-buttons .giveup-button {
-  margin-top: 0;
-}
-
 .giveup-button:hover,
 .giveup-button:active {
   background-color: rgba(255, 255, 255, 0.07);
@@ -283,6 +271,47 @@
 
 .rules-button:hover {
   opacity: 0.9;
+}
+
+/* tinted gold at rest, solid gold on hover and while tapped */
+.share-button {
+  position: fixed;
+  top: 12px;
+  right: 56px;
+  height: 36px;
+  padding: 0 14px;
+  z-index: 3;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+
+  cursor: pointer;
+  border: 1px solid rgba(255, 212, 121, 0.6);
+  border-radius: 18px;
+  color: var(--found);
+  background-color: rgba(255, 212, 121, 0.12);
+
+  transition: background-color 0.25s, color 0.25s, box-shadow 0.25s;
+  animation: giveup-button-in 0.8s ease both;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.share-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.share-button:hover,
+.share-button:active {
+  color: var(--bg);
+  background-color: var(--found);
+  box-shadow: 0 6px 24px rgba(255, 212, 121, 0.2);
 }
 
 .modal-backdrop {

@@ -6,7 +6,7 @@
   --border: #22494b;
   --backdrop: rgba(4, 16, 17, 0.6);
   --text: #e6f0ec;
-  --found: #ff6a5c;
+  --found: #f0c674;
 }
 
 .disable-scrolling {
@@ -361,6 +361,8 @@
 .modal > :nth-child(5) { --i: 6; }
 .modal > :nth-child(6) { --i: 7; }
 .modal > :nth-child(7) { --i: 8; }
+.modal > :nth-child(8) { --i: 9; }
+.modal > :nth-child(9) { --i: 10; }
 .modal li:nth-child(1) { --i: 2; }
 .modal li:nth-child(2) { --i: 3; }
 .modal li:nth-child(3) { --i: 4; }

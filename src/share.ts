@@ -130,9 +130,13 @@ export const share_text = ({
     })),
   ];
 
+  // as few lines as fit, with the columns spread evenly across them, so a
+  // single miss doesn't push one lonely column onto a line of its own
+  const line_count = Math.ceil(columns.length / COLUMNS_PER_LINE);
+  const per_line = Math.ceil(columns.length / line_count);
   const lines: string[] = [];
-  for (let k = 0; k < columns.length; k += COLUMNS_PER_LINE) {
-    const chunk = columns.slice(k, k + COLUMNS_PER_LINE);
+  for (let k = 0; k < columns.length; k += per_line) {
+    const chunk = columns.slice(k, k + per_line);
     if (k > 0) lines.push("");
     lines.push(chunk.map((c) => c.top).join(""));
     lines.push(chunk.map((c) => c.bottom).join(""));

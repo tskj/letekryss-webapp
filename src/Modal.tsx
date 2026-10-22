@@ -1,4 +1,5 @@
 import { ReactNode, useCallback, useEffect, useState } from "react";
+import { share_text } from "./share";
 
 // children can be a function to get the animated close, for buttons inside the modal
 export const Modal = ({
@@ -43,12 +44,33 @@ export const Modal = ({
   );
 };
 
+const minute = 60 * 1000;
+const example_share_text = share_text({
+  date: "2026-10-22",
+  events: [
+    { kind: "found", direction: { di: 1, dj: 0 }, durationMs: 0.5 * minute },
+    { kind: "found", direction: { di: 0, dj: 1 }, durationMs: 2 * minute },
+    { kind: "miss", direction: { di: 1, dj: 1 } },
+    { kind: "found", direction: { di: -1, dj: -1 }, durationMs: 4 * minute },
+    { kind: "found", direction: { di: -1, dj: 0 }, durationMs: 0.7 * minute },
+    { kind: "found", direction: { di: 1, dj: -1 }, durationMs: 1.5 * minute },
+    { kind: "found", direction: { di: 0, dj: -1 }, durationMs: 6 * minute },
+    { kind: "found", direction: { di: 1, dj: 0 }, durationMs: 0.4 * minute },
+    { kind: "found", direction: { di: -1, dj: 1 }, durationMs: 14 * minute },
+  ],
+  total: 10,
+  totalMs: 29 * minute,
+});
+
 export const Rules = ({ onClose }: { onClose: () => void }) => (
   <Modal onClose={onClose}>
     {(close) => (
       <>
         <h2>Slik spiller du</h2>
-        <p>Finn de 10 ordene som er gjemt blant bokstavene.</p>
+        <p>
+          Finn de 10 norske ordene som er gjemt blant bokstavene. Alle er
+          vanlige ord fra ordboka.
+        </p>
         <ul>
           <li>
             Ordene går bortover, nedover eller på skrå, og både forlengs og
@@ -59,12 +81,12 @@ export const Rules = ({ onClose }: { onClose: () => void }) => (
             for å fjerne markeringen.
           </li>
           <li>
-            Treffer du et av ordene, blir bokstavene røde og ordet dukker opp
+            Treffer du et av ordene, lyser bokstavene opp og ordet dukker opp
             under brettet.
           </li>
           <li>
             Det finnes ingen andre ord på brettet, bortsett fra kortere ord som
-            står inni de 10. Finner du UGLE uten at den blir rød, sitter den
+            står inni de 10. Finner du UGLE uten at den lyser opp, sitter den
             kanskje inni en FUGLEHUND.
           </li>
           <li>Det kommer et nytt brett hver dag ved midnatt.</li>
@@ -83,6 +105,11 @@ export const Rules = ({ onClose }: { onClose: () => void }) => (
           🟩 under 1 min &nbsp; 🟨 1–3 min &nbsp; 🟧 3–10 min &nbsp; 🟥 over 10
           min &nbsp; ⬛ ikke funnet &nbsp; 💥 bom
         </p>
+        <p>
+          For eksempel: her ble åtte ord funnet, med én bom underveis, og to ble
+          aldri funnet.
+        </p>
+        <pre className="share-preview">{example_share_text}</pre>
         <button className="modal-button" onClick={close}>
           SPILL
         </button>

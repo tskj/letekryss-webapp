@@ -70,7 +70,7 @@ test("share text has arrows over tempo squares, with misses in between", () => {
   );
 });
 
-test("long results are split into lines of 10, keeping the rows lined up", () => {
+test("long results are split evenly into lines of at most 10, keeping the rows lined up", () => {
   const text = share_text({
     date: "2026-10-21",
     events: [
@@ -84,11 +84,11 @@ test("long results are split into lines of 10, keeping the rows lined up", () =>
   expect(text.split("\n")).toEqual([
     "Letekryss 21.10  10/10",
     "",
-    "⬇️⬇️⬇️⬇️➡️➡️➡️➡️➡️➡️",
-    "💥💥💥💥🟩🟩🟩🟩🟩🟩",
+    "⬇️⬇️⬇️⬇️➡️➡️➡️",
+    "💥💥💥💥🟩🟩🟩",
     "",
-    "➡️➡️➡️➡️",
-    "🟩🟩🟩🟩",
+    "➡️➡️➡️➡️➡️➡️➡️",
+    "🟩🟩🟩🟩🟩🟩🟩",
     "",
     "letekryss.no",
   ]);

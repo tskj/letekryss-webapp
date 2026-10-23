@@ -71,6 +71,14 @@ export const Rules = ({ onClose }: { onClose: () => void }) => (
           Finn de 10 norske ordene som er gjemt blant bokstavene. Alle er
           vanlige ord fra ordboka.
         </p>
+        <p>
+          <strong>Her står ingenting tilfeldig.</strong> I et vanlig letekryss
+          kan bokstavene danne ord ved et uhell, men ikke her. Ser du et norsk
+          ord på minst fire bokstaver, hører det til et av de 10: enten er det
+          ordet selv, eller så sitter det inni det. Lyser ikke UGLE opp, så let
+          rundt det. Kanskje er det en del av FUGLEHUND, eller det står
+          baklengs i JUBELGUTT.
+        </p>
         <ul>
           <li>
             Ordene går bortover, nedover eller på skrå, og både forlengs og
@@ -83,11 +91,6 @@ export const Rules = ({ onClose }: { onClose: () => void }) => (
           <li>
             Treffer du et av ordene, lyser bokstavene opp og ordet dukker opp
             under brettet.
-          </li>
-          <li>
-            Ingenting på brettet står der ved en tilfeldighet. Ser du et ord, er
-            du på sporet. Lyser ikke UGLE opp, sitter den kanskje inni en
-            FUGLEHUND.
           </li>
           <li>Det kommer et nytt brett hver dag ved midnatt.</li>
           <li>

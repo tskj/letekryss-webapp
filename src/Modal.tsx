@@ -99,8 +99,8 @@ export const Rules = ({ onClose }: { onClose: () => void }) => (
           </li>
         </ul>
         <p>
-          Når du er ferdig, kan du dele resultatet ditt uten å røpe noen ord.
-          Hver pil er et ord du fant eller en bom, i den rekkefølgen det
+          Du kan dele resultatet ditt når som helst, også før du er ferdig, med
+          knappen øverst. Ingen ord blir røpet. Hver pil er et ord du fant eller en bom, i den rekkefølgen det
           skjedde, og viser hvilken vei du markerte. Under pila viser fargen
           hvor lang tid du brukte på ordet:
         </p>

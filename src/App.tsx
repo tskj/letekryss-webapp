@@ -30,6 +30,22 @@ const api_url =
   "https://letekryss-generator-production.up.railway.app";
 
 var r = document.querySelector(":root") as any;
+
+/**
+ * where a letter sits on the page, without its transform. the letters flip
+ * and twirl (rotateX), which squashes their bounding box, and the lines that
+ * mark the words would squash and move along with it
+ */
+const layout_rect = (el: HTMLElement | undefined | null) => {
+  if (!el) return undefined;
+
+  const parent = el.offsetParent?.getBoundingClientRect() ?? { top: 0, left: 0 };
+  const top    = parent.top + el.offsetTop;
+  const left   = parent.left + el.offsetLeft;
+
+  return { top, left, bottom: top + el.offsetHeight, right: left + el.offsetWidth };
+};
+
 r.style.setProperty("--board-size", boardSize);
 r.style.setProperty(
   "--letter-size",
@@ -870,14 +886,11 @@ export const App = () => {
             ...selections,
             ...(isSelecting ? [[start, { i: -1, j: -1 }]] : []),
           ].map(([selectionStart, selectionEnd]) => {
-            const start =
-              refs.current?.[c_key(selectionStart)]?.getBoundingClientRect();
+            const start = layout_rect(refs.current?.[c_key(selectionStart)]);
             if (!start) return null;
 
             const radius = (start.bottom - start.top) / 2;
-            const end = refs.current?.[
-              c_key(selectionEnd)
-            ]?.getBoundingClientRect() ?? {
+            const end = layout_rect(refs.current?.[c_key(selectionEnd)]) ?? {
               top: (mouseCoord.current?.clientY ?? 0) - radius,
               left: (mouseCoord.current?.clientX ?? 0) - radius,
             };

@@ -529,8 +529,10 @@ export const App = () => {
         body,
       }
     )
-      .then((x) => x.json())
+      .then((x) => (x.ok ? x.json() : null))
       .then((x) => {
+        // an error, like a board that's gone, leaves the found words as they are
+        if (!x) return;
         if (fasitUnracer.current === thisRacer) {
           setFasit(x.correct);
           if (x.startedAt) setStartedAt(new Date(x.startedAt ?? null));
@@ -646,7 +648,9 @@ export const App = () => {
     !loading && isDone && !isCelebrating && fasit.length > 0 && hasGivenUp,
     async () => {
       const d = await fetch(
-        `${api_url}/solution?userId=${userId}`
+        // the date of the board being played, which is yesterday's if the
+        // page has been open since before midnight
+        `${api_url}/solution/${date}?userId=${userId}`
       )
         .then((x) => x.json())
         .then(array(string));

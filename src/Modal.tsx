@@ -59,7 +59,6 @@ const example_share_text = share_text({
     { kind: "found", direction: { di: -1, dj: 1 }, durationMs: 14 * minute },
   ],
   total: 10,
-  totalMs: 29 * minute,
 });
 
 export const Rules = ({ onClose }: { onClose: () => void }) => (

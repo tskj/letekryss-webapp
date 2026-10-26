@@ -54,13 +54,11 @@ test("share text has arrows over tempo squares, with misses in between", () => {
       { kind: "found", direction: { di: 1, dj: -1 }, durationMs: null },
     ],
     total: 7,
-    totalMs: 83 * min,
   });
 
   expect(text).toBe(
     [
       "https://letekryss.no 21.10  5/7",
-      "⏱ 1 t 23 min",
       "",
       "➡️⬅️⬇️↙️↖️↗️❌❌",
       "🟩💥🟨🟧🟥⬜⬛⬛",
@@ -76,7 +74,6 @@ test("long results are split evenly into lines of at most 12, keeping the rows l
       ...Array.from({ length: 10 }, () => ({ kind: "found" as const, direction: right, durationMs: 0 })),
     ],
     total: 10,
-    totalMs: null,
   });
 
   expect(text.split("\n")).toEqual([
@@ -90,16 +87,6 @@ test("long results are split evenly into lines of at most 12, keeping the rows l
   ]);
 });
 
-test("no misses is worth mentioning", () => {
-  const text = share_text({
-    date: "2026-10-21",
-    events: [{ kind: "found", direction: right, durationMs: 0 }],
-    total: 1,
-    totalMs: 3 * min,
-  });
-  expect(text.split("\n").at(1)).toBe("⏱ 3 min · 🎯 feilfritt");
-});
-
 test("a full game with a miss or two still fits on one line", () => {
   const text = share_text({
     date: "2026-10-21",
@@ -109,7 +96,6 @@ test("a full game with a miss or two still fits on one line", () => {
       ...Array.from({ length: 10 }, () => ({ kind: "found" as const, direction: right, durationMs: 0 })),
     ],
     total: 10,
-    totalMs: null,
   });
   expect(text.split("\n").slice(2, 4)).toEqual([
     "⬇️⬇️➡️➡️➡️➡️➡️➡️➡️➡️➡️➡️",
@@ -117,17 +103,15 @@ test("a full game with a miss or two still fits on one line", () => {
   ]);
 });
 
-test("a result shared mid-game shows only what happened, and the time so far", () => {
+test("a result shared mid-game shows only what happened", () => {
   const text = share_text({
     date: "2026-10-21",
     events: [{ kind: "found", direction: right, durationMs: 0 }],
     total: 10,
-    totalMs: 12 * min,
     inProgress: true,
   });
   expect(text.split("\n")).toEqual([
     "https://letekryss.no 21.10  1/10",
-    "⏱ 12 min så langt · 🎯 feilfritt",
     "",
     // no columns for the words not found yet
     "➡️",

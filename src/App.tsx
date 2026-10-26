@@ -602,17 +602,11 @@ export const App = () => {
     boolean
   );
 
-  const [givenUpAt, setGivenUpAt] = usePersistenState(
-    "given-up-at:" + date,
-    0,
-    number
-  );
   const [justGaveUp, setJustGaveUp] = useState(false);
 
   const giveup = () => {
     setIsDone(true);
     setHasGivenUp(true);
-    setGivenUpAt(Date.now());
     setJustGaveUp(true);
   };
 
@@ -749,11 +743,6 @@ export const App = () => {
   };
 
   const foundAtByWord = Object.fromEntries(foundAt);
-  const finishedAt = hasGivenUp
-    ? givenUpAt || null
-    : fasit.length === numberOfFasitWords
-    ? Math.max(...fasit.map((w) => foundAtByWord[w] ?? -Infinity))
-    : null;
 
   /**
    * a mark is a miss if it's not one of the words, unless it ended up
@@ -794,12 +783,6 @@ export const App = () => {
       startedAt: startedAt.getTime(),
     }),
     total: numberOfFasitWords,
-    totalMs:
-      finishedAt !== null && Number.isFinite(finishedAt)
-        ? finishedAt - startedAt.getTime()
-        : !isDone
-        ? Date.now() - startedAt.getTime()
-        : null,
     inProgress: !isDone,
   });
 

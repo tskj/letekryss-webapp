@@ -36,15 +36,6 @@ const tempo_square = (durationMs: number | null) => {
   return "🟥";
 };
 
-const format_duration = (ms: number) => {
-  const total_minutes = Math.max(1, Math.round(ms / minute));
-  const hours = Math.floor(total_minutes / 60);
-  const minutes = total_minutes % 60;
-  if (hours === 0) return `${minutes} min`;
-  if (minutes === 0) return `${hours} t`;
-  return `${hours} t ${minutes} min`;
-};
-
 export const selection_direction = ([start, end]: Selection): Direction => ({
   di: Math.sign(end.i - start.i),
   dj: Math.sign(end.j - start.j),
@@ -106,20 +97,17 @@ export const share_text = ({
   date,
   events,
   total,
-  totalMs,
   inProgress = false,
 }: {
   // yyyy-mm-dd
   date: string;
   events: ShareEvent[];
   total: number;
-  totalMs: number | null;
-  // shared before finishing, so the time is the time so far
+  // shared before finishing
   inProgress?: boolean;
 }) => {
   const [, month, day] = date.split("-");
   const found_count = events.filter((e) => e.kind === "found").length;
-  const miss_count = events.length - found_count;
 
   const columns = [
     ...events.map((e) =>
@@ -147,19 +135,9 @@ export const share_text = ({
     lines.push(chunk.map((c) => c.bottom).join(""));
   }
 
-  const stats = [
-    totalMs !== null
-      ? `⏱ ${format_duration(totalMs)}${inProgress ? " så langt" : ""}`
-      : null,
-    miss_count === 0 ? "🎯 feilfritt" : null,
-  ]
-    .filter((x) => x !== null)
-    .join(" · ");
-
   // the address doubles as the title, so the share links back to the game
   return [
     `https://letekryss.no ${day}.${month}  ${found_count}/${total}`,
-    ...(stats ? [stats] : []),
     "",
     ...lines,
   ].join("\n");

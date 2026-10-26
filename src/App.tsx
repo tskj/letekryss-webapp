@@ -149,6 +149,10 @@ const selectionDecoder = tuple(coordinateDecoder, coordinateDecoder);
 type Selections = decodeType<typeof selectionsDecoder>;
 const selectionsDecoder = array(selectionDecoder);
 
+// when each word was found, and every mark made, for the shared result
+const foundAtDecoder = array(tuple(string, number));
+const marksDecoder = array(tuple(selectionDecoder, number));
+
 /** ================== use effect hook ================== */
 
 /**
@@ -167,17 +171,25 @@ const usePersistenState = <T extends unknown>(
 ): [T, (v: T) => void] => {
   const [initialDefaultValue] = useState(defaultValue);
 
+  // only the key decides when the value is read again. a decoder made inline
+  // is a new function every render, and reading again on every render sets
+  // the state on every render, which renders again, forever
+  const decoderRef = useRef(decoder);
+  decoderRef.current = decoder;
+
   const calcCurrentValue = useCallback(() => {
     try {
       const existingEncoded = localStorage.getItem(key);
       const existingValue =
-        existingEncoded !== null ? decoder(JSON.parse(existingEncoded)) : null;
+        existingEncoded !== null
+          ? decoderRef.current(JSON.parse(existingEncoded))
+          : null;
       return existingValue ?? initialDefaultValue;
     } catch (e) {
       alert(e);
       throw e;
     }
-  }, [key, initialDefaultValue, decoder]);
+  }, [key, initialDefaultValue]);
 
   const [state, setState] = useState(calcCurrentValue);
 
@@ -617,7 +629,7 @@ export const App = () => {
   const [foundAt, setFoundAt] = usePersistenState(
     "found-at:" + date,
     [],
-    array(tuple(string, number))
+    foundAtDecoder
   );
   useEffect(() => {
     if (date === "") return;
@@ -637,7 +649,7 @@ export const App = () => {
   const [marks, setMarks] = usePersistenState(
     "marks:" + date,
     [],
-    array(tuple(selectionDecoder, number))
+    marksDecoder
   );
   const addSelection = (new_selection: Selection) => {
     setSelections([...selections, new_selection]);

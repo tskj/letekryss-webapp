@@ -40,7 +40,8 @@ if (game === "lyn") document.title = "Letekryss lyn";
 if (game === "vrien") document.title = "Letekryss vrien lyn";
 
 // TODO: denne må bestemmes fra faktiske brettet eller backenden
-const boardSize = isLyn ? 8 : 15;
+// vrien is the smallest, and the hardest
+const boardSize = game === "lyn" ? 8 : game === "vrien" ? 6 : 15;
 
 // lyn's games are saved apart from the daily one of the same date
 const storagePrefix = isLyn ? game + ":" : "";
@@ -73,7 +74,7 @@ r.style.setProperty(
   "--letter-size",
   // plus 3 for three letter heights for fasit (should be enough)
   // 1 for header
-  `clamp(20px, min(calc(100vh / (var(--board-size) + 3 + 1)), calc(100vw / (var(--board-size) + 1))), ${isLyn ? 60 : 50}px)`
+  `clamp(20px, min(calc(100vh / (var(--board-size) + 3 + 1)), calc(100vw / (var(--board-size) + 1))), ${game === "vrien" ? 72 : isLyn ? 60 : 50}px)`
 );
 
 // used to disable mouse gestures

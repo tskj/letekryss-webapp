@@ -141,18 +141,18 @@ export const LynRules = ({
           ord på minst fire bokstaver på brettet. Ser du et ord, er det ordet,
           eller en del av det, så let videre rundt det.
         </p>
-        <p>
-          Men se opp for lokkeord: noen bokstaver står sånn at de nesten blir
-          et ord, som OCKTAIL eller VESKBAR.{" "}
-          {vrien
-            ? "I vrien lyn er det seks av dem, og nesten hele brettet ser ut som ord."
-            : "Det er to av dem."}{" "}
-          Når du er ferdig, blir de røde.
-        </p>
+        {vrien && (
+          <p>
+            Men se opp for lokkeord: fem steder står bokstavene sånn at de
+            nesten blir et ord, som OCKTAIL eller VESKBAR, så nesten hele
+            brettet ser ut som ord. Når du er ferdig, blir lokkeordene røde.
+          </p>
+        )}
         <ul>
           <li>
             Ordet går bortover, nedover eller på skrå, forlengs eller baklengs,
-            og er mellom fem og åtte bokstaver langt.
+            og er {vrien ? "fem eller seks" : "mellom fem og åtte"} bokstaver
+            langt.
           </li>
           <li>Dra over ordet for å markere det.</li>
           <li>
@@ -163,8 +163,8 @@ export const LynRules = ({
           <li>Står du helt fast, kan du gi opp etter et minutt.</li>
         </ul>
         <p>
-          Del tiden din med knappen øverst. Hver 💥 er en bom, og hver 🪤 er en
-          bom på et lokkeord.
+          Del tiden din med knappen øverst. Hver 💥 er en bom
+          {vrien && ", og hver 🪤 er en bom på et lokkeord"}.
         </p>
         <button className="modal-button" onClick={close}>
           SPILL

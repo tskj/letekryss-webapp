@@ -8,6 +8,7 @@
   --text: #e6f0ec;
   --button-border: rgba(230, 240, 236, 0.55);
   --found: #ffd479;
+  --decoy: #ff8f7a;
 }
 
 .disable-scrolling {
@@ -513,4 +514,109 @@
 
 .modal-button:active {
   background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* lyn */
+
+.stopwatch {
+  height: calc(1.4 * var(--letter-size));
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 200;
+  font-size: calc(0.8 * var(--letter-size));
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.4;
+  transition: opacity 0.4s, color 0.8s;
+}
+
+.stopwatch.running {
+  opacity: 1;
+}
+
+.stopwatch.stopped {
+  opacity: 1;
+  color: var(--found);
+  text-shadow: 0 0 14px rgba(255, 212, 121, 0.35);
+}
+
+.lyn-missing {
+  position: relative;
+  z-index: 2;
+  width: calc(var(--board-size) * var(--letter-size));
+  height: calc(var(--board-size) * var(--letter-size));
+  margin-top: calc(-1 * var(--board-size) * var(--letter-size));
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 300;
+  font-size: calc(var(--letter-size) / 2.5);
+  letter-spacing: 0.04em;
+}
+
+/* dagens, lyn and vrien, top left */
+.games {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  height: 36px;
+  z-index: 3;
+
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+
+  border: 0.5px solid rgba(230, 240, 236, 0.4);
+  border-radius: 18px;
+}
+
+.games a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+
+  border-radius: 15px;
+  color: var(--text);
+  opacity: 0.55;
+  transition: opacity 0.2s, background-color 0.2s;
+}
+
+.games a:hover {
+  opacity: 0.9;
+}
+
+.games a.active {
+  opacity: 1;
+  color: var(--bg);
+  background-color: var(--text);
+}
+
+@media only screen and (max-width: 420px) {
+  .games a {
+    padding: 0 9px;
+    font-size: 11px;
+  }
+
+  /* only the icon, so it doesn't run into the games */
+  .share-button .share-label {
+    display: none;
+  }
+}
+
+/* the decoys, once the game is over */
+.decoy {
+  color: var(--decoy);
+  transition: color 0.8s ease;
+}
+
+.fasit > .decoy-word {
+  color: var(--decoy);
 }

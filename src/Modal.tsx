@@ -93,8 +93,8 @@ export const Rules = ({ onClose }: { onClose: () => void }) => (
           </li>
           <li>Det kommer et nytt brett hver dag ved midnatt.</li>
           <li>
-            Står du fast, kan du sjekke fasiten etter klokka 19, men tidligst et
-            kvarter etter at du begynte. Da er dagens spill over.
+            Står du fast, kan du sjekke fasiten etter klokka 19. Da er dagens
+            spill over.
           </li>
         </ul>
         <p>
@@ -112,6 +112,60 @@ export const Rules = ({ onClose }: { onClose: () => void }) => (
           aldri funnet.
         </p>
         <pre className="share-preview">{example_share_text}</pre>
+        <button className="modal-button" onClick={close}>
+          SPILL
+        </button>
+      </>
+    )}
+  </Modal>
+);
+
+export const LynRules = ({
+  onClose,
+  vrien,
+}: {
+  onClose: () => void;
+  vrien: boolean;
+}) => (
+  <Modal onClose={onClose}>
+    {(close) => (
+      <>
+        <h2>{vrien ? "Vrien lyn" : "Lyn"}</h2>
+        <p>
+          Ett ord er gjemt på det lille brettet. Finn det så fort du kan.
+          Klokka starter når du åpner siden, og stopper når du har markert
+          ordet.
+        </p>
+        <p>
+          <strong>Her står ingenting tilfeldig.</strong> Det finnes ingen andre
+          ord på minst fire bokstaver på brettet. Ser du et ord, er det ordet,
+          eller en del av det, så let videre rundt det.
+        </p>
+        <p>
+          Men se opp for lokkeord: noen bokstaver står sånn at de nesten blir
+          et ord, som OCKTAIL eller VESKBAR.{" "}
+          {vrien
+            ? "I vrien lyn er det seks av dem, og nesten hele brettet ser ut som ord."
+            : "Det er to av dem."}{" "}
+          Når du er ferdig, blir de røde.
+        </p>
+        <ul>
+          <li>
+            Ordet går bortover, nedover eller på skrå, forlengs eller baklengs,
+            og er mellom fem og åtte bokstaver langt.
+          </li>
+          <li>Dra over ordet for å markere det.</li>
+          <li>
+            Klokka går videre selv om du lukker siden, så du kan ikke starte på
+            nytt.
+          </li>
+          <li>Det kommer et nytt ord hver dag ved midnatt.</li>
+          <li>Står du helt fast, kan du gi opp etter et minutt.</li>
+        </ul>
+        <p>
+          Del tiden din med knappen øverst. Hver 💥 er en bom, og hver 🪤 er en
+          bom på et lokkeord.
+        </p>
         <button className="modal-button" onClick={close}>
           SPILL
         </button>
@@ -144,25 +198,32 @@ export const Result = ({
   total,
   text,
   inProgress,
+  title,
+  summary,
 }: {
   onClose: () => void;
   foundCount: number;
   total: number;
   text: string;
   inProgress: boolean;
+  // lyn says the time instead of the count
+  title?: string;
+  summary?: ReactNode;
 }) => {
   const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
 
   return (
     <Modal onClose={onClose}>
       <h2>
-        {inProgress
+        {title ?? (inProgress
           ? "Så langt"
           : foundCount === total
             ? "Gratulerer!"
-            : "Bra forsøk!"}
+            : "Bra forsøk!")}
       </h2>
-      {inProgress ? (
+      {summary ? (
+        <p>{summary}</p>
+      ) : inProgress ? (
         <p>
           Du har funnet {foundCount} av {total} ord. Del det du har, og let
           videre etterpå.

@@ -19,15 +19,37 @@ import {
   tuple,
 } from "typescript-json-decoder";
 import "./App.css";
-import { Result, Rules, ShareIcon } from "./Modal";
-import { selection_direction, share_text, timeline, word_direction } from "./share";
+import { LynRules, Result, Rules, ShareIcon } from "./Modal";
+import {
+  format_time,
+  lyn_share_text,
+  selection_direction,
+  share_text,
+  timeline,
+  word_direction,
+} from "./share";
+
+// letekryss.no/lyn is lyn: a small board with a single word, against the
+// clock. /lyn/vrien is the same with more decoys
+type Game = "dagens" | "lyn" | "vrien";
+const path = window.location.pathname.replace(/\/+$/, "");
+const game: Game =
+  path === "/lyn" ? "lyn" : path === "/lyn/vrien" ? "vrien" : "dagens";
+const isLyn = game !== "dagens";
+if (game === "lyn") document.title = "Letekryss lyn";
+if (game === "vrien") document.title = "Letekryss vrien lyn";
 
 // TODO: denne må bestemmes fra faktiske brettet eller backenden
-const boardSize = 15;
+const boardSize = isLyn ? 8 : 15;
+
+// lyn's games are saved apart from the daily one of the same date
+const storagePrefix = isLyn ? game + ":" : "";
 
 const api_url =
   process.env.REACT_APP_API_URL ??
   "https://letekryss-generator-production.up.railway.app";
+
+const lyn_api = `${api_url}/lyn${game === "vrien" ? "/vrien" : ""}`;
 
 var r = document.querySelector(":root") as any;
 
@@ -51,7 +73,7 @@ r.style.setProperty(
   "--letter-size",
   // plus 3 for three letter heights for fasit (should be enough)
   // 1 for header
-  "clamp(20px, min(calc(100vh / (var(--board-size) + 3 + 1)), calc(100vw / (var(--board-size) + 1))), 50px)"
+  `clamp(20px, min(calc(100vh / (var(--board-size) + 3 + 1)), calc(100vw / (var(--board-size) + 1))), ${isLyn ? 60 : 50}px)`
 );
 
 // used to disable mouse gestures
@@ -116,13 +138,13 @@ const osloSecondsSinceMidnight = (date: Date) => {
   return parts.hour * 60 * 60 + parts.minute * 60 + parts.second;
 };
 
-const numberOfFasitWords = 10;
+const numberOfFasitWords = isLyn ? 1 : 10;
 
 const alphabet = "abcdefghijklmnopqrstuvwxyzæøå".toUpperCase().split("");
 
 const waitingLetter = alphabet[Math.floor(Math.random() * alphabet.length)];
-const waitingBoard = Array.from({ length: 15 }).map(() =>
-  Array.from({ length: 15 }).map(() => waitingLetter)
+const waitingBoard = Array.from({ length: boardSize }).map(() =>
+  Array.from({ length: boardSize }).map(() => waitingLetter)
 );
 
 type Coordinate = {
@@ -323,6 +345,77 @@ const celebration_delay = memoize<Coordinate>(
   }
 );
 
+/**
+ * lyn's clock. its own component, so ticking renders only the clock and not
+ * the whole board
+ */
+const Stopwatch = ({
+  startedAtMs,
+  timeMs,
+  gaveUp,
+}: {
+  // on this device's clock
+  startedAtMs: number | null;
+  // the server's time once the word is found
+  timeMs: number | null;
+  gaveUp: boolean;
+}) => {
+  const [now, setNow] = useState(Date.now());
+  const running = startedAtMs !== null && timeMs === null && !gaveUp;
+  useEffect(() => {
+    if (!running) return;
+    const interval = setInterval(() => setNow(Date.now()), 100);
+    return () => clearInterval(interval);
+  }, [running]);
+
+  const ms =
+    timeMs ?? (startedAtMs !== null ? Math.max(0, now - startedAtMs) : 0);
+
+  return (
+    <div
+      className={classnames(
+        { running, stopped: timeMs !== null, "gave-up": gaveUp && timeMs === null },
+        "stopwatch"
+      )}
+    >
+      {gaveUp && timeMs === null ? "ga opp" : format_time(ms)}
+    </div>
+  );
+};
+
+// a string on the lyn board that looks like a word but isn't, from one end
+// to the other
+type Decoy = { word: string; from: Coordinate; to: Coordinate };
+
+// how many of the day's players that found the word were slower, out of
+// how many found it (the player too)
+type Standing = { slower: number; finished: number };
+
+const standing_text = ({ slower, finished }: Standing) => {
+  const others = finished - 1;
+  if (others === 0) return "Du er den første som har funnet det i dag!";
+  if (slower === others) return `Du er raskest av alle ${finished} som har funnet det i dag!`;
+
+  const percent = Math.round((slower / others) * 100);
+  return `Du var raskere enn ${percent} % av de ${others} andre som har funnet det i dag.`;
+};
+
+/**
+ * what the server says about the player's lyn: the board once started, and
+ * the time once found
+ */
+type LynResponse = {
+  date: string;
+  // once the word is found or given up
+  decoys?: Decoy[];
+  // once the word is found
+  standing?: Standing;
+  board?: string[][];
+  startedAt: string | null;
+  timeMs: number | null;
+  now: string;
+};
+
 export const App = () => {
   const [userId] = usePersistenState("user-id", uuidv4(), string);
 
@@ -345,16 +438,7 @@ export const App = () => {
   }, [loading, animationLoadingDelay]);
 
   const [date, setDate] = useState("");
-  const [brett, setBrett] = useState([]);
-  useEffect(() => {
-    fetch(`${api_url}/daily-board`)
-      .then((x) => x.json())
-      .then((x) => {
-        setBrett(x.board);
-        setDate(x.date);
-        setLoading(false);
-      });
-  }, []);
+  const [brett, setBrett] = useState<string[][]>([]);
 
   /**
    * deselect with esc
@@ -384,7 +468,7 @@ export const App = () => {
   }, [isSelecting]);
 
   const [selections, setSelections] = usePersistenState<Selections>(
-    "selection" + date,
+    storagePrefix + "selection" + date,
     [],
     selectionsDecoder
   );
@@ -515,17 +599,66 @@ export const App = () => {
 
   const [shouldShowCheckFasit, setShouldShowCheckFasit] = useState(false);
   const [startedAt, setStartedAt] = useState<Date>(new Date());
+
+  /**
+   * lyn's clock, moved to this device's clock, which may be off from the
+   * server's
+   */
+  const [lynClock, setLynClock] = useState<{
+    startedAtMs: number;
+    timeMs: number | null;
+    standing?: Standing;
+  } | null>(null);
+  const [decoys, setDecoys] = useState<Decoy[]>([]);
+  const receiveLynClock = useCallback((x: LynResponse) => {
+    if (x.decoys) setDecoys(x.decoys);
+    if (!x.startedAt) return;
+    const offsetMs = new Date(x.now).getTime() - Date.now();
+    const startedAtMs = new Date(x.startedAt).getTime() - offsetMs;
+    setLynClock({ startedAtMs, timeMs: x.timeMs, standing: x.standing });
+    setStartedAt(new Date(startedAtMs));
+  }, []);
+  const receiveLyn = useCallback(
+    (x: LynResponse) => {
+      setDate(x.date);
+      receiveLynClock(x);
+      if (x.board) {
+        setBrett(x.board);
+        setLoading(false);
+      }
+    },
+    [receiveLynClock]
+  );
+
+  const [noBoard, setNoBoard] = useState(false);
+  useEffect(() => {
+    if (isLyn) {
+      // the clock starts as soon as the page opens, so there's no looking at
+      // the board before it runs. opening it again keeps the first start
+      fetch(`${lyn_api}/start?userId=${userId}`, { method: "POST" })
+        .then((x) => (x.ok ? x.json() : null))
+        .then((x) => (x ? receiveLyn(x) : setNoBoard(true)));
+      return;
+    }
+
+    fetch(`${api_url}/daily-board`)
+      .then((x) => x.json())
+      .then((x) => {
+        setBrett(x.board);
+        setDate(x.date);
+        setLoading(false);
+      });
+  }, [userId, receiveLyn]);
+
   useEffect(() => {
     const now = new Date();
     const ms_until_seven_pm_in_norway =
       (19 * 60 * 60 - osloSecondsSinceMidnight(now)) * 1000;
-    const ms_until_15_minutes_after_start =
-      startedAt.getTime() + 15 * 60 * 1000 - now.getTime();
 
-    const timeUntilAllowed = Math.max(
-      ms_until_seven_pm_in_norway,
-      ms_until_15_minutes_after_start
-    );
+    // lyn can be given up a minute in, the daily board in the evening
+    const timeUntilAllowed = isLyn
+      ? startedAt.getTime() + 60 * 1000 - now.getTime()
+      : ms_until_seven_pm_in_norway;
     const timeout = setTimeout(() => {
       setShouldShowCheckFasit(true);
     }, timeUntilAllowed);
@@ -533,7 +666,7 @@ export const App = () => {
   }, [startedAt]);
 
   const [isDone, setIsDone] = usePersistenState(
-    "has-completed:" + date,
+    storagePrefix + "has-completed:" + date,
     false,
     boolean
   );
@@ -541,6 +674,9 @@ export const App = () => {
   const [fasit, setFasit] = useState<string[]>([]);
   const fasitUnracer = useRef(0);
   useEffect(() => {
+    // lyn has nothing to check before the board is shown
+    if (isLyn && brett.length === 0) return;
+
     const found_words = selections.map(collect_letters(brett));
     const body = JSON.stringify(
       found_words.flatMap((x) => [x.join(""), x.reverse().join("")])
@@ -548,7 +684,9 @@ export const App = () => {
     fasitUnracer.current++;
     const thisRacer = fasitUnracer.current;
     fetch(
-      `${api_url}/check-solution/${date}?userId=${userId}`,
+      isLyn
+        ? `${lyn_api}/check/${date}?userId=${userId}`
+        : `${api_url}/check-solution/${date}?userId=${userId}`,
       {
         method: "POST",
         headers: {
@@ -563,7 +701,8 @@ export const App = () => {
         if (!x) return;
         if (fasitUnracer.current === thisRacer) {
           setFasit(x.correct);
-          if (x.startedAt) setStartedAt(new Date(x.startedAt ?? null));
+          if (isLyn) receiveLynClock(x);
+          else if (x.startedAt) setStartedAt(new Date(x.startedAt ?? null));
 
           // TODO: send actual number from backend
           if (x.correct.length === numberOfFasitWords) {
@@ -572,7 +711,7 @@ export const App = () => {
           }
         }
       });
-  }, [brett, date, selections, userId, isDone, setIsDone]);
+  }, [brett, date, selections, userId, isDone, setIsDone, receiveLynClock]);
 
   const rerender = useRerender();
   useEffect(() => {
@@ -609,7 +748,7 @@ export const App = () => {
   });
 
   const [hasGivenUp, setHasGivenUp] = usePersistenState(
-    "has-given-up:" + date,
+    storagePrefix + "has-given-up:" + date,
     false,
     boolean
   );
@@ -627,7 +766,7 @@ export const App = () => {
    * and how long each one took
    */
   const [foundAt, setFoundAt] = usePersistenState(
-    "found-at:" + date,
+    storagePrefix + "found-at:" + date,
     [],
     foundAtDecoder
   );
@@ -647,7 +786,7 @@ export const App = () => {
    * removed again
    */
   const [marks, setMarks] = usePersistenState(
-    "marks:" + date,
+    storagePrefix + "marks:" + date,
     [],
     marksDecoder
   );
@@ -667,12 +806,18 @@ export const App = () => {
   >([]);
   const [givenUpWords, setGivenUpWords] = useState<string[]>([]);
   useEffectOnceWhen(
-    !loading && isDone && !isCelebrating && fasit.length > 0 && hasGivenUp,
+    !loading &&
+      isDone &&
+      !isCelebrating &&
+      (isLyn || fasit.length > 0) &&
+      hasGivenUp,
     async () => {
       const d = await fetch(
         // the date of the board being played, which is yesterday's if the
         // page has been open since before midnight
-        `${api_url}/solution/${date}?userId=${userId}`
+        isLyn
+          ? `${lyn_api}/solution/${date}?userId=${userId}`
+          : `${api_url}/solution/${date}?userId=${userId}`
       )
         .then((x) => x.json())
         .then(array(string));
@@ -771,9 +916,32 @@ export const App = () => {
           all_coordinates(s).every((c) => cells.has(c_key(c)))
         )
     )
-    .map(([s, at]) => ({ at, direction: selection_direction(s) }));
+    .map(([s, at]) => ({ at, direction: selection_direction(s), selection: s }));
 
-  const resultText = share_text({
+  /**
+   * the decoys' cells, known once the game is over. a miss that runs along
+   * three or more of them fell for the decoy
+   */
+  const decoyCells = decoys.map(
+    ({ from, to }) => new Set(all_coordinates([from, to]).map(c_key))
+  );
+  const isDecoyCell = (c: Coordinate) =>
+    decoyCells.some((cells) => cells.has(c_key(c)));
+  const fellForDecoy = (s: Selection) =>
+    decoyCells.some(
+      (cells) => all_coordinates(s).filter((c) => cells.has(c_key(c))).length >= 3
+    );
+
+  const lynGaveUp = hasGivenUp && (lynClock?.timeMs ?? null) === null;
+  const resultText = isLyn
+    ? lyn_share_text({
+        date,
+        timeMs: lynClock?.timeMs ?? null,
+        misses: misses.map((m) => (fellForDecoy(m.selection) ? "trap" : "miss")),
+        gaveUp: lynGaveUp,
+        vrien: game === "vrien",
+      })
+    : share_text({
     date,
     events: timeline({
       found: fasit.map((word) => {
@@ -1019,6 +1187,13 @@ export const App = () => {
             );
           })}
         </div>
+        {isLyn && (
+          <Stopwatch
+            startedAtMs={lynClock?.startedAtMs ?? null}
+            timeMs={lynClock?.timeMs ?? null}
+            gaveUp={lynGaveUp}
+          />
+        )}
         <div className="grid" ref={gridRef}>
           {(loading ? waitingBoard : brett).flatMap((row, j) =>
             row.map((bokstav, i) => {
@@ -1035,6 +1210,8 @@ export const App = () => {
                   .flatMap(all_coordinates)
 
                   .some((x) => x.i === i && x.j === j);
+
+              const decoy = isLyn && isDone && isDecoyCell({ i, j });
 
               const r = fade_in_delay({ bokstav, i, j });
               const r_c = celebration_delay({ i, j });
@@ -1368,6 +1545,7 @@ export const App = () => {
                       {
                         selected:
                           selected && !loading && !animationLoadingDelay,
+                        decoy: decoy && !selected,
                       },
                       "inner-bokstav"
                     )}
@@ -1379,6 +1557,12 @@ export const App = () => {
             })
           )}
         </div>
+        {isLyn && noBoard && (
+          // over the waiting board, taking no room of its own
+          <div className="lyn-missing">
+            <p>Ingen lyn i dag</p>
+          </div>
+        )}
         <div className="fasit-container">
           <div className="fasit">
             {fasit.map((f, i) => (
@@ -1402,15 +1586,30 @@ export const App = () => {
                 {g}
               </div>
             ))}
+            {isLyn &&
+              isDone &&
+              decoys.map((d, i) => (
+                <div
+                  key={"decoy:" + d.word}
+                  className="decoy-word"
+                  style={{
+                    animationDelay: `calc(${
+                      i + fasit.length + givenUpWords.length
+                    } * 0.15s + 0.6s)`,
+                  }}
+                >
+                  {d.word}
+                </div>
+              ))}
           </div>
         </div>
         {!loading &&
           !animationLoadingDelay &&
           !isDone &&
-          fasit.length > 0 &&
+          (isLyn || fasit.length > 0) &&
           shouldShowCheckFasit && (
             <button className="giveup-button" onClick={giveup}>
-              SJEKK FASIT
+              {isLyn ? "GI OPP" : "SJEKK FASIT"}
             </button>
           )}
       </header>
@@ -1419,9 +1618,27 @@ export const App = () => {
       {!loading && !animationLoadingDelay && (isDone || fasit.length > 0) && (
         <button className="share-button" onClick={() => setShowResult(true)}>
           <ShareIcon />
-          DEL RESULTAT
+          <span className="share-label">DEL RESULTAT</span>
         </button>
       )}
+      <nav className="games">
+        {(
+          [
+            ["dagens", "/", "DAGENS"],
+            ["lyn", "/lyn", "LYN"],
+            ["vrien", "/lyn/vrien", "VRIEN"],
+          ] as const
+        ).map(([g, href, label]) => (
+          <a
+            key={g}
+            href={href}
+            className={g === game ? "active" : undefined}
+            aria-current={g === game ? "page" : undefined}
+          >
+            {label}
+          </a>
+        ))}
+      </nav>
       <button
         className="rules-button"
         onClick={() => setShowRules(true)}
@@ -1429,7 +1646,12 @@ export const App = () => {
       >
         ?
       </button>
-      {showRules && <Rules onClose={closeRules} />}
+      {showRules &&
+        (isLyn ? (
+          <LynRules onClose={closeRules} vrien={game === "vrien"} />
+        ) : (
+          <Rules onClose={closeRules} />
+        ))}
       {showResult && !showRules && (
         <Result
           onClose={closeResult}
@@ -1437,6 +1659,30 @@ export const App = () => {
           total={numberOfFasitWords}
           inProgress={!isDone}
           text={resultText}
+          {...(isLyn && {
+            title:
+              lynClock?.timeMs != null
+                ? "Gratulerer!"
+                : lynGaveUp
+                ? "Bra forsøk!"
+                : "Så langt",
+            summary:
+              lynClock?.timeMs != null ? (
+                <>
+                  Du fant {fasit[0]} på {format_time(lynClock.timeMs)}.
+                  {lynClock.standing && (
+                    <>
+                      <br />
+                      {standing_text(lynClock.standing)}
+                    </>
+                  )}
+                </>
+              ) : lynGaveUp ? (
+                <>Ordet var {givenUpWords[0] ?? "…"}.</>
+              ) : (
+                <>Klokka går!</>
+              ),
+          })}
         />
       )}
     </div>

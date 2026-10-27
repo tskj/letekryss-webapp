@@ -142,3 +142,46 @@ export const share_text = ({
     ...lines,
   ].join("\n");
 };
+
+/**
+ * 83456 ms is "1:23,4", the tenths with a norwegian decimal comma
+ */
+export const format_time = (ms: number) => {
+  const tenths = Math.floor(ms / 100);
+  const minutes = Math.floor(tenths / 600);
+  const seconds = Math.floor(tenths / 10) % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")},${tenths % 10}`;
+};
+
+/**
+ * lyn has one word, so the result is the time, with the misses before it: a
+ * trap is a miss on one of the decoys. no arrows, the way the word goes would
+ * give it away
+ */
+export const lyn_share_text = ({
+  date,
+  timeMs,
+  misses,
+  gaveUp,
+  vrien = false,
+}: {
+  // yyyy-mm-dd
+  date: string;
+  timeMs: number | null;
+  misses: ("miss" | "trap")[];
+  gaveUp: boolean;
+  vrien?: boolean;
+}) => {
+  const [, month, day] = date.split("-");
+  const result = gaveUp ? "🏳️" : timeMs !== null ? `⚡ ${format_time(timeMs)}` : "⏱️";
+
+  const marks = [
+    ...misses.map((m) => (m === "trap" ? "🪤" : "💥")),
+    ...(gaveUp ? ["⬛"] : timeMs !== null ? ["🟩"] : []),
+  ];
+
+  return [
+    `https://letekryss.no/lyn${vrien ? "/vrien" : ""} ${day}.${month}  ${result}`,
+    ...(marks.length > 0 ? ["", marks.join("")] : []),
+  ].join("\n");
+};

@@ -28,6 +28,11 @@ jobs:
         run: |
           mkdir -p deploy
           cp -r build/* deploy
+          # lyn is the same app, which picks the game from the path. the
+          # assets are under /static, so the page works from any folder
+          mkdir -p deploy/lyn/vrien
+          cp build/index.html deploy/lyn/index.html
+          cp build/index.html deploy/lyn/vrien/index.html
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4

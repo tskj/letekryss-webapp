@@ -1,4 +1,4 @@
-import { share_text, timeline, word_direction } from "./share";
+import { share_text, timeline, word_direction, format_time, lyn_share_text } from "./share";
 
 const min = 60 * 1000;
 const right = { di: 1, dj: 0 };
@@ -116,5 +116,52 @@ test("a result shared mid-game shows only what happened", () => {
     // no columns for the words not found yet
     "➡️",
     "🟩",
+  ]);
+});
+
+test("times are minutes, seconds and tenths", () => {
+  expect(format_time(0)).toBe("0:00,0");
+  expect(format_time(9_999)).toBe("0:09,9");
+  expect(format_time(83_456)).toBe("1:23,4");
+  expect(format_time(61 * 60_000)).toBe("61:00,0");
+});
+
+test("a lyn result is the time, with the misses before it", () => {
+  const text = lyn_share_text({
+    date: "2026-10-27",
+    timeMs: 42_300,
+    misses: ["miss", "trap"],
+    gaveUp: false,
+  });
+  // no arrows, the way the word goes would give it away
+  expect(text.split("\n")).toEqual([
+    "https://letekryss.no/lyn 27.10  ⚡ 0:42,3",
+    "",
+    "💥🪤🟩",
+  ]);
+});
+
+test("vrien links to vrien", () => {
+  const text = lyn_share_text({
+    date: "2026-10-27",
+    timeMs: 42_300,
+    misses: [],
+    gaveUp: false,
+    vrien: true,
+  });
+  expect(text.split("\n").at(0)).toBe("https://letekryss.no/lyn/vrien 27.10  ⚡ 0:42,3");
+});
+
+test("a lyn given up has no time", () => {
+  const text = lyn_share_text({
+    date: "2026-10-27",
+    timeMs: null,
+    misses: [],
+    gaveUp: true,
+  });
+  expect(text.split("\n")).toEqual([
+    "https://letekryss.no/lyn 27.10  🏳️",
+    "",
+    "⬛",
   ]);
 });

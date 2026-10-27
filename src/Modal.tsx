@@ -105,7 +105,7 @@ export const Rules = ({ onClose }: { onClose: () => void }) => (
         </p>
         <p className="legend">
           🟩 under 1 min &nbsp; 🟨 1–3 min &nbsp; 🟧 3–10 min &nbsp; 🟥 over 10
-          min &nbsp; ⬛ ikke funnet &nbsp; 💥 bom
+          min &nbsp; 🙈 ikke funnet &nbsp; ❌ bom
         </p>
         <p>
           For eksempel: her ble åtte ord funnet, med én bom underveis, og to ble
@@ -163,8 +163,8 @@ export const LynRules = ({
           <li>Står du helt fast, kan du gi opp etter et minutt.</li>
         </ul>
         <p>
-          Del tiden din med knappen øverst. Hver 💥 er en bom
-          {vrien && ", og hver 🪤 er en bom på et lokkeord"}.
+          Del tiden din med knappen øverst. Hver ❌ er en bom
+          {vrien && ", og hver 💥 er et lokkeord du gikk på"}.
         </p>
         <button className="modal-button" onClick={close}>
           SPILL

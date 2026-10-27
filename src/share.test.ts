@@ -60,8 +60,8 @@ test("share text has arrows over tempo squares, with misses in between", () => {
     [
       "https://letekryss.no 21.10  5/7",
       "",
-      "➡️⬅️⬇️↙️↖️↗️❌❌",
-      "🟩💥🟨🟧🟥⬜⬛⬛",
+      "➡️⬅️⬇️↙️↖️↗️🙈🙈",
+      "🟩❌🟨🟧🟥⬜⬛⬛",
     ].join("\n")
   );
 });
@@ -80,7 +80,7 @@ test("long results are split evenly into lines of at most 12, keeping the rows l
     "https://letekryss.no 21.10  10/10",
     "",
     "⬇️⬇️⬇️⬇️➡️➡️➡️",
-    "💥💥💥💥🟩🟩🟩",
+    "❌❌❌❌🟩🟩🟩",
     "",
     "➡️➡️➡️➡️➡️➡️➡️",
     "🟩🟩🟩🟩🟩🟩🟩",
@@ -99,7 +99,7 @@ test("a full game with a miss or two still fits on one line", () => {
   });
   expect(text.split("\n").slice(2, 4)).toEqual([
     "⬇️⬇️➡️➡️➡️➡️➡️➡️➡️➡️➡️➡️",
-    "💥💥🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩",
+    "❌❌🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩",
   ]);
 });
 
@@ -137,7 +137,7 @@ test("a lyn result is the time, with the misses before it", () => {
   expect(text.split("\n")).toEqual([
     "https://letekryss.no/lyn 27.10  ⚡ 0:42,3",
     "",
-    "💥🪤🟩",
+    "❌💥🟩",
   ]);
 });
 

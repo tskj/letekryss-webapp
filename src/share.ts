@@ -113,13 +113,13 @@ export const share_text = ({
     ...events.map((e) =>
       e.kind === "found"
         ? { top: arrow(e.direction), bottom: tempo_square(e.durationMs) }
-        : { top: arrow(e.direction), bottom: "💥" }
+        : { top: arrow(e.direction), bottom: "❌" }
     ),
     // mid-game the header's count says how many are left, so only a
     // finished game marks the words that were never found
     ...Array.from(
       { length: inProgress ? 0 : Math.max(0, total - found_count) },
-      () => ({ top: "❌", bottom: "⬛" })
+      () => ({ top: "🙈", bottom: "⬛" })
     ),
   ];
 
@@ -176,7 +176,8 @@ export const lyn_share_text = ({
   const result = gaveUp ? "🏳️" : timeMs !== null ? `⚡ ${format_time(timeMs)}` : "⏱️";
 
   const marks = [
-    ...misses.map((m) => (m === "trap" ? "🪤" : "💥")),
+    // a miss on a decoy goes off
+    ...misses.map((m) => (m === "trap" ? "💥" : "❌")),
     ...(gaveUp ? ["⬛"] : timeMs !== null ? ["🟩"] : []),
   ];
 
